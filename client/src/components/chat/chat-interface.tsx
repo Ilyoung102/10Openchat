@@ -222,13 +222,6 @@ export const ChatInput = ({ onSend, isLoading }: ChatInputProps) => {
           </button>
         </div>
       </div>
-      
-      <div className="text-center mt-3">
-        <p className="text-[10px] text-gray-500 flex items-center justify-center gap-1">
-          <Sparkles size={10} />
-          고급 AI 모델로 구동됩니다. 응답이 다를 수 있습니다.
-        </p>
-      </div>
     </div>
   );
 };

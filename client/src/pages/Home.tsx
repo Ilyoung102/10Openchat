@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.22";
+const APP_VERSION = "v1.23";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -850,7 +850,7 @@ export default function Home() {
                   <X size={14} />
                 </button>
                 
-                <div className="grid grid-cols-6 gap-1.5 p-2 pt-4 pb-2 max-w-4xl mx-auto">
+                <div className="grid grid-cols-6 gap-1 p-1.5 pt-3 pb-1 max-w-4xl mx-auto">
                   {SERVICE_DATA.find(c => c.id === activeCategory)?.items.map((item) => (
                     <button
                       key={item.id}
@@ -858,13 +858,13 @@ export default function Home() {
                         handleServiceItemClick(item);
                       }}
                       disabled={isLoading}
-                      className="flex flex-col items-center justify-center py-2 px-1 rounded-md text-[10px] font-medium transition-all
+                      className="flex flex-col items-center justify-center py-1 px-0.5 rounded text-[9px] font-medium transition-all
                         disabled:opacity-50 disabled:cursor-not-allowed
                         bg-[#1a1a1a] text-gray-300 hover:bg-primary/20 hover:text-primary border border-white/5 hover:border-primary/30"
                       data-testid={`button-service-${item.id}`}
                     >
-                      <span className="text-lg mb-0.5">{item.icon}</span>
-                      <span className="truncate w-full text-center">{item.label}</span>
+                      <span className="text-sm mb-0">{item.icon}</span>
+                      <span className="truncate w-full text-center leading-tight">{item.label}</span>
                     </button>
                   ))}
                 </div>
@@ -873,7 +873,7 @@ export default function Home() {
           </AnimatePresence>
 
           {/* Chat Input */}
-          <div className="bg-gradient-to-t from-background via-background to-transparent pt-6 pb-4">
+          <div className="bg-gradient-to-t from-background via-background to-transparent pt-2 pb-2">
             <ChatInput onSend={handleSend} isLoading={isLoading} />
           </div>
         </div>
