@@ -10,8 +10,8 @@ import { audioPlayer } from '@/lib/audio-player';
 import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
-// App Version
-const APP_VERSION = "v1.01";
+// App Version - 코드 수정 시 반드시 +0.01 업데이트
+const APP_VERSION = "v1.02";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -248,7 +248,7 @@ export default function Home() {
             <Sparkles className="text-black" fill="black" />
           </div>
           <div>
-            <h1 className="font-bold text-lg tracking-tight text-white">MAZI AI <span className="text-primary text-sm font-mono">{APP_VERSION}</span></h1>
+            <h1 className="font-bold text-2xl tracking-tight text-white">MAZI AI <span className="text-primary text-base font-mono">{APP_VERSION}</span></h1>
             <p className="text-[10px] text-primary font-mono tracking-wider uppercase">{model} // CONNECTED</p>
           </div>
         </div>
@@ -359,7 +359,7 @@ export default function Home() {
         <header className="md:hidden h-16 border-b border-white/5 flex items-center justify-between px-4 bg-black/40 backdrop-blur-md z-20">
           <div className="flex items-center gap-3">
             <Sparkles className="text-primary" size={20} />
-            <span className="font-bold text-white">MAZI AI <span className="text-primary text-xs font-mono">{APP_VERSION}</span></span>
+            <span className="font-bold text-xl text-white">MAZI AI <span className="text-primary text-sm font-mono">{APP_VERSION}</span></span>
           </div>
           <div className="flex items-center gap-2">
              <button 
