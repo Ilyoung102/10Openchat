@@ -7,6 +7,7 @@ import { TypingIndicator } from '@/components/ui/typing-indicator';
 import { ChatMessage, streamOpenAIResponse, checkApiKey, saveApiKey, getModel, saveModel, generateSpeech } from '@/lib/openai';
 import { SERVICE_DATA, ServiceItem } from '@/lib/prompts';
 import { audioPlayer } from '@/lib/audio-player';
+import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // Initial welcome message
