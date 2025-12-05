@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.17";
+const APP_VERSION = "v1.18";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -31,7 +31,7 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   // Audio State
-  const [isTTSActive, setIsTTSActive] = useState(true);
+  const [isTTSActive, setIsTTSActive] = useState(false);
   const isTTSActiveRef = useRef(isTTSActive);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
