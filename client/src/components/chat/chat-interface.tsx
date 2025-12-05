@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Mic, StopCircle, Sparkles, Paperclip, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
@@ -12,14 +12,13 @@ interface ChatInputProps {
 export const ChatInput = ({ onSend, isLoading }: ChatInputProps) => {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const onSendRef = useRef(onSend);
+  const isLoadingRef = useRef(isLoading);
   
-  const handleAutoSend = (text: string) => {
-    if (text.trim() && !isLoading) {
-      onSend(text);
-      setInput('');
-      stopListening();
-    }
-  };
+  useEffect(() => {
+    onSendRef.current = onSend;
+    isLoadingRef.current = isLoading;
+  }, [onSend, isLoading]);
 
   const { 
     isListening, 
@@ -33,7 +32,12 @@ export const ChatInput = ({ onSend, isLoading }: ChatInputProps) => {
     isCountingDown
   } = useSpeechRecognition({
     onResult: (text) => setInput(text),
-    onSpeechEnd: handleAutoSend,
+    onSpeechEnd: useCallback((text: string) => {
+      if (text.trim() && !isLoadingRef.current) {
+        onSendRef.current(text);
+        setInput('');
+      }
+    }, []),
     lang: 'ko-KR',
     autoSendDelayMs: 1500
   });
