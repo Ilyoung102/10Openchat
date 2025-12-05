@@ -75,6 +75,7 @@ export const MessageBubble = ({ role, text, timestamp, isError, onPlayAudio }: M
                   onClick={handlePlay} 
                   className="hover:text-white text-gray-400 transition-colors"
                   title="Read Aloud"
+                  data-testid="button-play-audio"
                 >
                   {isPlaying ? <Loader2 size={12} className="animate-spin" /> : <Volume2 size={12} />}
                 </button>
@@ -84,6 +85,7 @@ export const MessageBubble = ({ role, text, timestamp, isError, onPlayAudio }: M
                   onClick={handleCopy} 
                   className="hover:text-white text-gray-400 transition-colors"
                   title="Copy"
+                  data-testid="button-copy-message"
                 >
                   {copied ? <Check size={12} /> : <Copy size={12} />}
                 </button>

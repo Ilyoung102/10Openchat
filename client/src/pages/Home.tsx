@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.19";
+const APP_VERSION = "v1.20";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -438,6 +438,7 @@ export default function Home() {
                         onChange={(e) => setApiKey(e.target.value)}
                         placeholder={checkApiKey() ? "(Hidden)" : "sk-..."}
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
+                        data-testid="input-api-key"
                     />
                     <p className="text-[10px] text-gray-500 mt-1">
                       Leave blank to keep existing key.
@@ -458,6 +459,7 @@ export default function Home() {
                         onChange={(e) => setModel(e.target.value)}
                         placeholder="gpt-4o"
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
+                        data-testid="input-model"
                     />
                     <p className="text-[10px] text-gray-500 mt-1">
                       gpt-4o, gpt-4-turbo, gpt-5 등 모델 ID 입력
@@ -468,12 +470,14 @@ export default function Home() {
                     <button 
                     onClick={() => setShowSettingsModal(false)}
                     className="px-4 py-2 rounded-lg text-gray-400 hover:text-white text-sm transition-colors"
+                    data-testid="button-settings-cancel"
                     >
                     Cancel
                     </button>
                     <button 
                     onClick={handleSaveSettings}
                     className="bg-primary text-black font-bold px-6 py-2 rounded-lg hover:bg-cyan-400 transition-colors shadow-lg shadow-primary/20"
+                    data-testid="button-settings-save"
                     >
                     Save Configuration
                     </button>
@@ -526,6 +530,7 @@ export default function Home() {
             <button 
               onClick={handleNewSession}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary/20 text-primary rounded-xl border border-primary/40 hover:bg-primary/30 transition-all group shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+              data-testid="button-new-session"
             >
               <Plus size={18} />
               <span className="font-medium text-sm">New</span>
@@ -539,6 +544,7 @@ export default function Home() {
                   ? "text-gray-600 border-gray-700 bg-white/5 cursor-not-allowed"
                   : "text-amber-400 border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]"
               )}
+              data-testid="button-save-chat"
             >
               <Save size={18} />
             </button>
@@ -554,6 +560,7 @@ export default function Home() {
                  <button 
                    onClick={() => setActiveCategory(null)}
                    className="w-full flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white mb-2 text-sm"
+                   data-testid="button-category-back"
                  >
                    <ArrowLeft size={14} /> Back
                  </button>
@@ -564,6 +571,7 @@ export default function Home() {
                        key={item.id}
                        onClick={() => handleServiceItemClick(item)}
                        className="w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-primary transition-colors text-xs truncate"
+                       data-testid={`button-service-${item.id}`}
                      >
                        {item.label}
                      </button>
@@ -577,6 +585,7 @@ export default function Home() {
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
                   className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-all group"
+                  data-testid={`button-category-${category.id}`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-gray-500 group-hover:text-primary transition-colors">
@@ -603,6 +612,7 @@ export default function Home() {
                     sessions.length === 0 ? "text-gray-600 cursor-not-allowed" : "text-gray-500 hover:text-white hover:bg-white/10"
                   )}
                   title="전체 저장 (Backup)"
+                  data-testid="button-export-sessions"
                 >
                   <Download size={12} />
                 </button>
@@ -610,6 +620,7 @@ export default function Home() {
                   onClick={handleImportClick}
                   className="p-1 text-gray-500 hover:text-white hover:bg-white/10 rounded transition-colors"
                   title="불러오기 (Restore)"
+                  data-testid="button-import-sessions"
                 >
                   <Upload size={12} />
                 </button>
@@ -631,7 +642,7 @@ export default function Home() {
                 </div>
               ) : (
                 sortedSessions.map(session => (
-                  <div key={session.id} className="relative group">
+                  <div key={session.id} className="relative group" data-testid={`session-item-${session.id}`}>
                     {editingId === session.id ? (
                       <div className="px-2 py-2">
                         <input
@@ -642,6 +653,7 @@ export default function Home() {
                           onBlur={handleFinishEdit}
                           onKeyDown={handleEditKeyDown}
                           className="w-full bg-black/50 border border-primary/50 text-white text-xs rounded px-2 py-1.5 focus:outline-none focus:border-primary"
+                          data-testid={`input-session-rename-${session.id}`}
                         />
                       </div>
                     ) : (
@@ -653,6 +665,7 @@ export default function Home() {
                             : "text-gray-300 hover:bg-white/5"
                         )}
                         onClick={() => handleSelectSession(session.id)}
+                        data-testid={`button-select-session-${session.id}`}
                       >
                         <div className="flex items-center gap-2 overflow-hidden">
                           {session.pinned ? (
@@ -672,6 +685,7 @@ export default function Home() {
                             "p-1 rounded text-gray-500 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity",
                             menuOpenId === session.id && "opacity-100 bg-white/10 text-white"
                           )}
+                          data-testid={`button-session-menu-${session.id}`}
                         >
                           <MoreVertical size={12} />
                         </button>
@@ -688,6 +702,7 @@ export default function Home() {
                         <button 
                           onClick={() => handleTogglePin(session.id)}
                           className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-primary/20 hover:text-primary flex items-center gap-2"
+                          data-testid={`button-session-pin-${session.id}`}
                         >
                           {session.pinned ? <ArrowUp size={12} className="rotate-180" /> : <ArrowUp size={12} />}
                           {session.pinned ? '고정 해제' : '맨 위로'}
@@ -695,6 +710,7 @@ export default function Home() {
                         <button 
                           onClick={() => handleStartEdit(session)}
                           className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-blue-500/20 hover:text-blue-400 flex items-center gap-2"
+                          data-testid={`button-session-rename-${session.id}`}
                         >
                           <Edit2 size={12} />
                           이름 변경
@@ -702,6 +718,7 @@ export default function Home() {
                         <button 
                           onClick={() => handleDeleteSession(session.id)}
                           className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-2 border-t border-white/5"
+                          data-testid={`button-session-delete-${session.id}`}
                         >
                           <Trash2 size={12} />
                           삭제
@@ -725,12 +742,14 @@ export default function Home() {
                         ? "bg-primary/20 text-primary border-primary/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]" 
                         : "text-gray-400 border-white/20 bg-white/5 hover:bg-white/10"
                 )}
+                data-testid="button-tts-toggle"
             >
                 {isTTSActive ? <Volume2 size={18} /> : <VolumeX size={18} />}
             </button>
             <button 
                 onClick={() => setShowSettingsModal(true)}
                 className="flex items-center justify-center p-3 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-colors flex-1 border border-white/20"
+                data-testid="button-settings"
             >
                 <Settings size={18} />
             </button>
@@ -745,6 +764,7 @@ export default function Home() {
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="flex items-center gap-3 active:opacity-70 transition-opacity"
+            data-testid="button-mobile-menu"
           >
             <Menu className="text-primary" size={20} />
             <span className="font-bold text-xl text-white">MAZI Service <span className="text-primary text-sm font-mono">{APP_VERSION}</span></span>
@@ -756,10 +776,11 @@ export default function Home() {
                     "p-2 rounded-lg transition-colors",
                     isTTSActive ? "text-primary" : "text-gray-400"
                 )}
+                data-testid="button-mobile-tts-toggle"
              >
                  {isTTSActive ? <Volume2 size={20} /> : <VolumeX size={20} />}
              </button>
-             <button onClick={() => setShowSettingsModal(true)}>
+             <button onClick={() => setShowSettingsModal(true)} data-testid="button-mobile-settings">
                <Settings size={20} className="text-gray-400" />
              </button>
           </div>
@@ -778,6 +799,7 @@ export default function Home() {
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 text-gray-400 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur rounded-lg transition-colors border border-white/5"
+            data-testid="button-desktop-menu"
           >
             <Menu size={20} />
           </button>
