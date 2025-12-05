@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Menu, Plus, Sparkles, Activity, Key } from 'lucide-react';
+import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu } from 'lucide-react';
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
-import { ChatMessage, streamOpenAIResponse, checkApiKey, saveApiKey } from '@/lib/openai';
+import { ChatMessage, streamOpenAIResponse, checkApiKey, saveApiKey, getModel, saveModel } from '@/lib/openai';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // Initial welcome message
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  text: "# MAZI AI: ONLINE\nSystem initialized. Connected to GPT-4o Neural Network.\n\nI am ready to assist you with advanced analysis, coding, and creative tasks. How shall we proceed?",
+  text: "# MAZI AI: ONLINE\nSystem initialized. Connected to Neural Network.\n\nI am ready to assist you with advanced analysis, coding, and creative tasks. How shall we proceed?",
   timestamp: Date.now()
 };
 
@@ -19,14 +19,19 @@ export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
   const [apiKey, setApiKey] = useState('');
-  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [model, setModel] = useState('gpt-4o');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Load saved settings
+    setModel(getModel());
+    
     if (!checkApiKey()) {
-      setShowKeyModal(true);
+      setShowSettingsModal(true);
     }
   }, []);
 
@@ -40,7 +45,7 @@ export default function Home() {
 
   const handleSend = async (text: string) => {
     if (!checkApiKey()) {
-        setShowKeyModal(true);
+        setShowSettingsModal(true);
         return;
     }
 
@@ -65,7 +70,7 @@ export default function Home() {
       }]);
 
       await streamOpenAIResponse(
-        messages, // Pass history (excluding current user message which is handled in lib)
+        messages, // Pass history
         text, // New message
         (chunk) => {
           setMessages(prev => prev.map(msg => 
@@ -89,19 +94,22 @@ export default function Home() {
     }
   };
 
-  const handleSaveKey = () => {
+  const handleSaveSettings = () => {
     if (apiKey.trim()) {
       saveApiKey(apiKey);
-      setShowKeyModal(false);
     }
+    if (model.trim()) {
+      saveModel(model);
+    }
+    setShowSettingsModal(false);
   };
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground font-sans selection:bg-primary/30">
       
-      {/* API Key Modal */}
+      {/* Settings Modal */}
       <AnimatePresence>
-        {showKeyModal && (
+        {showSettingsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
@@ -113,37 +121,57 @@ export default function Home() {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
               
               <h2 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
-                <Key className="text-primary" size={20} /> Authentication Required
+                <Settings className="text-primary" size={20} /> System Configuration
               </h2>
               <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                MAZI AI requires an OpenAI API Key to function. 
-                <br/><span className="text-xs text-gray-500 mt-2 block">If you have an <code>OPENAI_API_KEY</code> environment variable set, it will be used automatically. Otherwise, please enter it below.</span>
+                Configure your MAZI AI connection settings.
               </p>
               
               <div className="space-y-4">
                 <div>
-                    <label className="text-xs font-mono text-primary mb-1 block">API KEY</label>
+                    <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
+                      <Key size={12} /> API KEY
+                    </label>
                     <input 
                         type="password" 
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
-                        placeholder="sk-..."
+                        placeholder={checkApiKey() ? "(Hidden)" : "sk-..."}
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
                     />
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      Leave blank to keep existing key.
+                    </p>
+                </div>
+
+                <div>
+                    <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
+                      <Cpu size={12} /> MODEL ID
+                    </label>
+                    <input 
+                        type="text" 
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
+                        placeholder="gpt-4o"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
+                    />
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      Enter "gpt-4o", "gpt-4-turbo", or "gpt-5" (when released).
+                    </p>
                 </div>
                 
                 <div className="flex justify-end gap-3 pt-2">
                     <button 
-                    onClick={() => setShowKeyModal(false)}
+                    onClick={() => setShowSettingsModal(false)}
                     className="px-4 py-2 rounded-lg text-gray-400 hover:text-white text-sm transition-colors"
                     >
                     Cancel
                     </button>
                     <button 
-                    onClick={handleSaveKey}
+                    onClick={handleSaveSettings}
                     className="bg-primary text-black font-bold px-6 py-2 rounded-lg hover:bg-cyan-400 transition-colors shadow-lg shadow-primary/20"
                     >
-                    Initialize System
+                    Save Configuration
                     </button>
                 </div>
               </div>
@@ -164,7 +192,7 @@ export default function Home() {
           </div>
           <div>
             <h1 className="font-bold text-lg tracking-tight text-white">MAZI AI</h1>
-            <p className="text-[10px] text-primary font-mono tracking-wider">GPT-4o // CONNECTED</p>
+            <p className="text-[10px] text-primary font-mono tracking-wider uppercase">{model} // CONNECTED</p>
           </div>
         </div>
 
@@ -184,7 +212,7 @@ export default function Home() {
           <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/5 space-y-3">
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-400">Core</span>
-              <span className="text-white font-mono">OpenAI GPT-4o</span>
+              <span className="text-white font-mono">{model}</span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-400">Latency</span>
@@ -201,11 +229,11 @@ export default function Home() {
 
         <div className="p-4 border-t border-white/5">
           <button 
-            onClick={() => setShowKeyModal(true)}
+            onClick={() => setShowSettingsModal(true)}
             className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
           >
             <Settings size={18} />
-            <span className="text-sm">API Settings</span>
+            <span className="text-sm">System Settings</span>
           </button>
         </div>
       </motion.aside>
@@ -218,7 +246,7 @@ export default function Home() {
             <Sparkles className="text-primary" size={20} />
             <span className="font-bold text-white">MAZI AI</span>
           </div>
-          <button onClick={() => setShowKeyModal(true)}>
+          <button onClick={() => setShowSettingsModal(true)}>
             <Settings size={20} className="text-gray-400" />
           </button>
         </header>

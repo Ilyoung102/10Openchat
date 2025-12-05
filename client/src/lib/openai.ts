@@ -1,8 +1,6 @@
 import OpenAI from "openai";
 
 // Initialize the API key
-// We check for VITE_OPENAI_API_KEY (standard Vite) and OPENAI_API_KEY (sometimes leaked/configured)
-// and finally localStorage for user-entered keys.
 export const getApiKey = () => {
   return (
     import.meta.env.VITE_OPENAI_API_KEY ||
@@ -11,6 +9,14 @@ export const getApiKey = () => {
     localStorage.getItem("OPENAI_API_KEY") || 
     ""
   );
+};
+
+export const getModel = () => {
+  return localStorage.getItem("OPENAI_MODEL") || "gpt-4o";
+};
+
+export const saveModel = (model: string) => {
+  localStorage.setItem("OPENAI_MODEL", model);
 };
 
 export const checkApiKey = () => {
@@ -35,6 +41,8 @@ export const streamOpenAIResponse = async (
   onChunk: (text: string) => void
 ) => {
   const apiKey = getApiKey();
+  const model = getModel();
+  
   if (!apiKey) throw new Error("API Key not found");
 
   const openai = new OpenAI({
@@ -51,7 +59,7 @@ export const streamOpenAIResponse = async (
     }));
 
   const stream = await openai.chat.completions.create({
-    model: "gpt-4o", // Using latest flagship
+    model: model, 
     messages: [
       { role: "system", content: "You are MAZI AI, a futuristic, advanced AI companion. You are helpful, precise, and have a slight cyberpunk personality." },
       ...validHistory,
