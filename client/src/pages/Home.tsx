@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.18";
+const APP_VERSION = "v1.19";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -106,11 +106,9 @@ export default function Home() {
     }
   }, []);
 
-  // Save sessions to localStorage when changed
+  // Save sessions to localStorage when changed (including empty array for deletions)
   useEffect(() => {
-    if (sessions.length > 0) {
-      localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-    }
+    localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
   }, [sessions]);
 
   // Save current session ID
@@ -120,15 +118,15 @@ export default function Home() {
     }
   }, [currentSessionId]);
 
-  // Sync messages to current session
+  // Sync messages to current session (including when cleared)
   useEffect(() => {
-    if (currentSessionId && messages.length > 0) {
+    if (currentSessionId) {
       setSessions(prev => prev.map(session => 
         session.id === currentSessionId 
           ? { 
               ...session, 
               messages, 
-              title: generateSessionTitle(messages),
+              title: messages.length > 0 ? generateSessionTitle(messages) : '새 대화',
               updatedAt: Date.now() 
             }
           : session
