@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.02";
+const APP_VERSION = "v1.03";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -260,7 +260,7 @@ export default function Home() {
               setActiveCategory(null);
               audioPlayer.stop();
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl border border-primary/20 hover:bg-primary/20 transition-all group mb-4"
+            className="w-full flex items-center gap-3 px-4 py-3 bg-primary/20 text-primary rounded-xl border border-primary/40 hover:bg-primary/30 transition-all group mb-4 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
           >
             <Plus size={18} />
             <span className="font-medium text-sm">New Session</span>
@@ -337,15 +337,15 @@ export default function Home() {
                 className={cn(
                     "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border",
                     isTTSActive 
-                        ? "bg-primary/10 text-primary border-primary/20" 
-                        : "text-gray-400 border-transparent hover:bg-white/5"
+                        ? "bg-primary/20 text-primary border-primary/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]" 
+                        : "text-gray-400 border-white/20 bg-white/5 hover:bg-white/10"
                 )}
             >
                 {isTTSActive ? <Volume2 size={18} /> : <VolumeX size={18} />}
             </button>
             <button 
                 onClick={() => setShowSettingsModal(true)}
-                className="flex items-center justify-center p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors flex-1 border border-transparent"
+                className="flex items-center justify-center p-3 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-colors flex-1 border border-white/20"
             >
                 <Settings size={18} />
             </button>
@@ -405,7 +405,7 @@ export default function Home() {
                 transition={{ duration: 0.6 }}
                 className="text-center"
               >
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                   GOOD TIME
                 </h2>
                 <p className="text-lg md:text-xl text-gray-400">
