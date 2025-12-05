@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX, MoreVertical, Trash2, Edit2, ArrowUp, Pin, MessageSquare, Download, Upload, Save } from 'lucide-react';
+import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX, MoreVertical, Trash2, Edit2, ArrowUp, Pin, MessageSquare, Download, Upload, Save, X } from 'lucide-react';
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.20";
+const APP_VERSION = "v1.21";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -550,60 +550,43 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Services Menu */}
-          <div className="space-y-1 border-b border-white/5 pb-4">
-            <p className="px-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Functions</p>
-            
-            {activeCategory ? (
-               // Submenu View
-               <div className="animate-in slide-in-from-right-4 duration-200">
-                 <button 
-                   onClick={() => setActiveCategory(null)}
-                   className="w-full flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white mb-2 text-sm"
-                   data-testid="button-category-back"
-                 >
-                   <ArrowLeft size={14} /> Back
-                 </button>
-                 
-                 <div className="space-y-1">
-                   {SERVICE_DATA.find(c => c.id === activeCategory)?.items.map((item) => (
-                     <button
-                       key={item.id}
-                       onClick={() => handleServiceItemClick(item)}
-                       className="w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-primary transition-colors text-xs truncate"
-                       data-testid={`button-service-${item.id}`}
-                     >
-                       {item.label}
-                     </button>
-                   ))}
-                 </div>
-               </div>
-            ) : (
-               // Main Categories
-               SERVICE_DATA.map((category) => (
-                <button 
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
-                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-all group"
-                  data-testid={`button-category-${category.id}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-500 group-hover:text-primary transition-colors">
-                      {getCategoryIcon(category.id)}
-                    </span>
-                    <span className="text-sm">{category.label}</span>
-                  </div>
-                  <ChevronRight size={14} className="text-gray-600 group-hover:text-white" />
-                </button>
-              ))
-            )}
+          {/* Services Menu - Categories Only */}
+          <div className="space-y-0.5 border-b border-white/5 pb-3">
+            <p className="px-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">Functions</p>
+            {SERVICE_DATA.map((category) => (
+              <button 
+                key={category.id}
+                onClick={() => setActiveCategory(activeCategory === category.id ? null : category.id)}
+                className={cn(
+                  "w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-all group",
+                  activeCategory === category.id 
+                    ? "bg-primary/20 text-primary" 
+                    : "text-gray-300 hover:bg-white/5 hover:text-white"
+                )}
+                data-testid={`button-category-${category.id}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    "transition-colors",
+                    activeCategory === category.id ? "text-primary" : "text-gray-500 group-hover:text-primary"
+                  )}>
+                    {getCategoryIcon(category.id)}
+                  </span>
+                  <span className="text-xs">{category.label}</span>
+                </div>
+                <ChevronRight size={12} className={cn(
+                  "transition-transform",
+                  activeCategory === category.id ? "rotate-90 text-primary" : "text-gray-600 group-hover:text-white"
+                )} />
+              </button>
+            ))}
           </div>
 
           {/* Chat History */}
-          <div className="pt-2">
-            <div className="px-2 py-2 flex items-center justify-between">
-              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">대화 기록</span>
-              <div className="flex items-center gap-1">
+          <div className="flex-1 min-h-0 flex flex-col pt-1">
+            <div className="px-2 py-1 flex items-center justify-between">
+              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">기록</span>
+              <div className="flex items-center gap-0.5">
                 <button 
                   onClick={handleExportSessions}
                   disabled={sessions.length === 0}
@@ -614,7 +597,7 @@ export default function Home() {
                   title="전체 저장 (Backup)"
                   data-testid="button-export-sessions"
                 >
-                  <Download size={12} />
+                  <Download size={11} />
                 </button>
                 <button 
                   onClick={handleImportClick}
@@ -622,7 +605,7 @@ export default function Home() {
                   title="불러오기 (Restore)"
                   data-testid="button-import-sessions"
                 >
-                  <Upload size={12} />
+                  <Upload size={11} />
                 </button>
                 <input 
                   type="file" 
@@ -631,20 +614,20 @@ export default function Home() {
                   className="hidden" 
                   accept=".json" 
                 />
-                <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded ml-1 text-gray-400">{sessions.length}</span>
+                <span className="text-[9px] bg-white/10 px-1 py-0.5 rounded ml-0.5 text-gray-400">{sessions.length}</span>
               </div>
             </div>
 
-            <div className="space-y-0.5 mt-1">
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-0">
               {sortedSessions.length === 0 ? (
-                <div className="px-3 py-4 text-center text-gray-600 text-xs">
-                  저장된 대화가 없습니다.
+                <div className="px-2 py-3 text-center text-gray-600 text-[10px]">
+                  저장된 대화 없음
                 </div>
               ) : (
                 sortedSessions.map(session => (
                   <div key={session.id} className="relative group" data-testid={`session-item-${session.id}`}>
                     {editingId === session.id ? (
-                      <div className="px-2 py-2">
+                      <div className="px-1 py-0.5">
                         <input
                           ref={editInputRef}
                           type="text"
@@ -652,14 +635,14 @@ export default function Home() {
                           onChange={(e) => setEditTitle(e.target.value)}
                           onBlur={handleFinishEdit}
                           onKeyDown={handleEditKeyDown}
-                          className="w-full bg-black/50 border border-primary/50 text-white text-xs rounded px-2 py-1.5 focus:outline-none focus:border-primary"
+                          className="w-full bg-black/50 border border-primary/50 text-white text-[11px] rounded px-2 py-1 focus:outline-none focus:border-primary"
                           data-testid={`input-session-rename-${session.id}`}
                         />
                       </div>
                     ) : (
                       <div 
                         className={cn(
-                          "flex items-center justify-between px-2 py-2 rounded-lg cursor-pointer transition-colors",
+                          "flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors",
                           currentSessionId === session.id 
                             ? "bg-primary/20 text-primary" 
                             : "text-gray-300 hover:bg-white/5"
@@ -667,13 +650,13 @@ export default function Home() {
                         onClick={() => handleSelectSession(session.id)}
                         data-testid={`button-select-session-${session.id}`}
                       >
-                        <div className="flex items-center gap-2 overflow-hidden">
+                        <div className="flex items-center gap-1.5 overflow-hidden">
                           {session.pinned ? (
-                            <Pin size={12} className="flex-shrink-0 text-amber-500 fill-amber-500/20" />
+                            <Pin size={10} className="flex-shrink-0 text-amber-500 fill-amber-500/20" />
                           ) : (
-                            <MessageSquare size={12} className="flex-shrink-0 opacity-70" />
+                            <MessageSquare size={10} className="flex-shrink-0 opacity-60" />
                           )}
-                          <span className="truncate text-xs">{session.title}</span>
+                          <span className="truncate text-[11px]">{session.title}</span>
                         </div>
 
                         <button 
@@ -682,12 +665,12 @@ export default function Home() {
                             setMenuOpenId(menuOpenId === session.id ? null : session.id);
                           }}
                           className={cn(
-                            "p-1 rounded text-gray-500 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity",
+                            "p-0.5 rounded text-gray-500 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity",
                             menuOpenId === session.id && "opacity-100 bg-white/10 text-white"
                           )}
                           data-testid={`button-session-menu-${session.id}`}
                         >
-                          <MoreVertical size={12} />
+                          <MoreVertical size={10} />
                         </button>
                       </div>
                     )}
@@ -696,31 +679,31 @@ export default function Home() {
                     {menuOpenId === session.id && (
                       <div 
                         ref={menuRef}
-                        className="absolute right-2 top-8 w-32 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+                        className="absolute right-1 top-7 w-28 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <button 
                           onClick={() => handleTogglePin(session.id)}
-                          className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-primary/20 hover:text-primary flex items-center gap-2"
+                          className="w-full text-left px-2 py-1.5 text-[10px] text-gray-300 hover:bg-primary/20 hover:text-primary flex items-center gap-1.5"
                           data-testid={`button-session-pin-${session.id}`}
                         >
-                          {session.pinned ? <ArrowUp size={12} className="rotate-180" /> : <ArrowUp size={12} />}
+                          {session.pinned ? <ArrowUp size={10} className="rotate-180" /> : <ArrowUp size={10} />}
                           {session.pinned ? '고정 해제' : '맨 위로'}
                         </button>
                         <button 
                           onClick={() => handleStartEdit(session)}
-                          className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-blue-500/20 hover:text-blue-400 flex items-center gap-2"
+                          className="w-full text-left px-2 py-1.5 text-[10px] text-gray-300 hover:bg-blue-500/20 hover:text-blue-400 flex items-center gap-1.5"
                           data-testid={`button-session-rename-${session.id}`}
                         >
-                          <Edit2 size={12} />
+                          <Edit2 size={10} />
                           이름 변경
                         </button>
                         <button 
                           onClick={() => handleDeleteSession(session.id)}
-                          className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-2 border-t border-white/5"
+                          className="w-full text-left px-2 py-1.5 text-[10px] text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-1.5 border-t border-white/5"
                           data-testid={`button-session-delete-${session.id}`}
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={10} />
                           삭제
                         </button>
                       </div>
@@ -847,9 +830,52 @@ export default function Home() {
           )}
         </div>
 
-        {/* Input Area */}
-        <div className="relative z-20 bg-gradient-to-t from-background via-background to-transparent pt-10 pb-4">
-          <ChatInput onSend={handleSend} isLoading={isLoading} />
+        {/* Input Area with Service Submenu */}
+        <div className="relative z-20">
+          {/* Service Submenu Grid - Above Input */}
+          <AnimatePresence>
+            {activeCategory && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.2 }}
+                className="border-t border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm relative"
+              >
+                <button 
+                  onClick={() => setActiveCategory(null)}
+                  className="absolute top-1 right-2 p-1 text-gray-500 hover:text-white rounded-full hover:bg-white/10 transition-colors z-10"
+                  data-testid="button-close-submenu"
+                >
+                  <X size={14} />
+                </button>
+                
+                <div className="grid grid-cols-6 gap-1.5 p-2 pt-4 pb-2 max-w-4xl mx-auto">
+                  {SERVICE_DATA.find(c => c.id === activeCategory)?.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        handleServiceItemClick(item);
+                        setActiveCategory(null);
+                      }}
+                      disabled={isLoading}
+                      className="flex items-center justify-center py-1.5 px-1 rounded-md text-[12px] font-medium transition-all
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                        bg-[#1a1a1a] text-gray-300 hover:bg-primary/20 hover:text-primary border border-white/5 hover:border-primary/30"
+                      data-testid={`button-service-${item.id}`}
+                    >
+                      <span className="truncate w-full text-center">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Chat Input */}
+          <div className="bg-gradient-to-t from-background via-background to-transparent pt-6 pb-4">
+            <ChatInput onSend={handleSend} isLoading={isLoading} />
+          </div>
         </div>
       </main>
     </div>
