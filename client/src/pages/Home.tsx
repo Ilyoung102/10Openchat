@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.15";
+const APP_VERSION = "v1.16";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -191,7 +191,7 @@ export default function Home() {
                 <Settings className="text-primary" size={20} /> System Configuration
               </h2>
               <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                Configure your Pure fragrance connection settings.
+                Configure your MAZI Service connection settings.
               </p>
               
               <div className="space-y-4">
@@ -282,7 +282,7 @@ export default function Home() {
             <Sparkles className="text-black" fill="black" />
           </div>
           <div>
-            <h1 className="font-bold text-2xl tracking-tight text-white">Pure fragrance <span className="text-primary text-base font-mono">{APP_VERSION}</span></h1>
+            <h1 className="font-bold text-2xl tracking-tight text-white">MAZI Service <span className="text-primary text-base font-mono">{APP_VERSION}</span></h1>
             <p className="text-[10px] text-green-400 font-mono tracking-wider uppercase">● CONNECTED</p>
           </div>
         </div>
@@ -379,7 +379,7 @@ export default function Home() {
             className="flex items-center gap-3 active:opacity-70 transition-opacity"
           >
             <Menu className="text-primary" size={20} />
-            <span className="font-bold text-xl text-white">Pure fragrance <span className="text-primary text-sm font-mono">{APP_VERSION}</span></span>
+            <span className="font-bold text-xl text-white">MAZI Service <span className="text-primary text-sm font-mono">{APP_VERSION}</span></span>
           </button>
           <div className="flex items-center gap-2">
              <button 
@@ -429,7 +429,7 @@ export default function Home() {
                   GOOD TIME
                 </h2>
                 <p className="text-lg md:text-xl text-gray-400 mt-4">
-                  <span className="text-[1.5em] text-white font-bold tracking-wider" style={{fontFamily: '"Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'}}>순향</span>과 함께 좋은 시간 보내요.
+                  <span className="text-[1.5em] text-white font-bold tracking-wider" style={{fontFamily: '"Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'}}>Pure fragrance</span>와 함께 좋은 시간 보내요.
                 </p>
               </motion.div>
             </div>

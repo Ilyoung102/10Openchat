@@ -89,7 +89,7 @@ export async function registerRoutes(
 
       const systemMessage: ChatMessage = {
         role: "system",
-        content: `You are Pure fragrance, a futuristic, advanced AI companion with real-time web search capabilities. You are helpful, precise, and have a slight cyberpunk personality.
+        content: `You are MAZI Service, a futuristic, advanced AI companion with real-time web search capabilities. You are helpful, precise, and have a slight cyberpunk personality.
 
 **중요: 모든 답변은 반드시 한국어로 작성해야 합니다.**
 
