@@ -301,7 +301,9 @@ export default function Home() {
       timestamp: Date.now()
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    // Build updated history including the new user message
+    const updatedHistory = [...messages, userMsg];
+    setMessages(updatedHistory);
     setIsLoading(true);
 
     // Stop any current audio
@@ -320,7 +322,7 @@ export default function Home() {
       let fullResponse = "";
 
       await streamOpenAIResponse(
-        messages, // Pass history
+        updatedHistory, // Pass history including current user message
         text, // Actual prompt to send (not displayText)
         (chunk) => {
           fullResponse += chunk;
