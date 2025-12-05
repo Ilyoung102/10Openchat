@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.21";
+const APP_VERSION = "v1.22";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -856,14 +856,14 @@ export default function Home() {
                       key={item.id}
                       onClick={() => {
                         handleServiceItemClick(item);
-                        setActiveCategory(null);
                       }}
                       disabled={isLoading}
-                      className="flex items-center justify-center py-1.5 px-1 rounded-md text-[12px] font-medium transition-all
+                      className="flex flex-col items-center justify-center py-2 px-1 rounded-md text-[10px] font-medium transition-all
                         disabled:opacity-50 disabled:cursor-not-allowed
                         bg-[#1a1a1a] text-gray-300 hover:bg-primary/20 hover:text-primary border border-white/5 hover:border-primary/30"
                       data-testid={`button-service-${item.id}`}
                     >
+                      <span className="text-lg mb-0.5">{item.icon}</span>
                       <span className="truncate w-full text-center">{item.label}</span>
                     </button>
                   ))}
