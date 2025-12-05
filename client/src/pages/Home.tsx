@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.23";
+const APP_VERSION = "v1.24";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -525,28 +525,15 @@ export default function Home() {
         </div>
 
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-2 custom-scrollbar">
-          {/* New Session + Save Chat Buttons */}
-          <div className="flex gap-2 mb-4">
+          {/* New Session Button */}
+          <div className="mb-4">
             <button 
               onClick={handleNewSession}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary/20 text-primary rounded-xl border border-primary/40 hover:bg-primary/30 transition-all group shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary/20 text-primary rounded-xl border border-primary/40 hover:bg-primary/30 transition-all group shadow-[0_0_10px_rgba(6,182,212,0.2)]"
               data-testid="button-new-session"
             >
               <Plus size={18} />
               <span className="font-medium text-sm">New</span>
-            </button>
-            <button 
-              onClick={handleSaveCurrentChat}
-              disabled={messages.length === 0}
-              className={cn(
-                "flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all",
-                messages.length === 0 
-                  ? "text-gray-600 border-gray-700 bg-white/5 cursor-not-allowed"
-                  : "text-amber-400 border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]"
-              )}
-              data-testid="button-save-chat"
-            >
-              <Save size={18} />
             </button>
           </div>
 
@@ -587,6 +574,18 @@ export default function Home() {
             <div className="px-2 py-1 flex items-center justify-between">
               <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">기록</span>
               <div className="flex items-center gap-0.5">
+                <button 
+                  onClick={handleSaveCurrentChat}
+                  disabled={messages.length === 0}
+                  className={cn(
+                    "p-1 rounded transition-colors",
+                    messages.length === 0 ? "text-gray-600 cursor-not-allowed" : "text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                  )}
+                  title="현재 대화 저장"
+                  data-testid="button-save-chat"
+                >
+                  <Save size={11} />
+                </button>
                 <button 
                   onClick={handleExportSessions}
                   disabled={sessions.length === 0}
@@ -840,7 +839,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.2 }}
-                className="border-t border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm relative"
+                className="border-t border-white/10 bg-transparent backdrop-blur-sm relative"
               >
                 <button 
                   onClick={() => setActiveCategory(null)}
