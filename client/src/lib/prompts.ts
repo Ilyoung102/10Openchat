@@ -2,6 +2,7 @@
 export interface ServiceItem {
   id: string;
   label: string;
+  icon: string;
   prompt: string;
 }
 
