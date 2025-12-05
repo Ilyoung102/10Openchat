@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.11";
+const APP_VERSION = "v1.12";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -186,7 +186,7 @@ export default function Home() {
                 <Settings className="text-primary" size={20} /> System Configuration
               </h2>
               <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                Configure your MAZI AI connection settings.
+                Configure your Pure fragrance connection settings.
               </p>
               
               <div className="space-y-4">
@@ -277,7 +277,7 @@ export default function Home() {
             <Sparkles className="text-black" fill="black" />
           </div>
           <div>
-            <h1 className="font-bold text-2xl tracking-tight text-white">MAZI AI <span className="text-primary text-base font-mono">{APP_VERSION}</span></h1>
+            <h1 className="font-bold text-2xl tracking-tight text-white">Pure fragrance <span className="text-primary text-base font-mono">{APP_VERSION}</span></h1>
             <p className="text-[10px] text-green-400 font-mono tracking-wider uppercase">● CONNECTED</p>
           </div>
         </div>
@@ -374,7 +374,7 @@ export default function Home() {
             className="flex items-center gap-3 active:opacity-70 transition-opacity"
           >
             <Menu className="text-primary" size={20} />
-            <span className="font-bold text-xl text-white">MAZI AI <span className="text-primary text-sm font-mono">{APP_VERSION}</span></span>
+            <span className="font-bold text-xl text-white">Pure fragrance <span className="text-primary text-sm font-mono">{APP_VERSION}</span></span>
           </button>
           <div className="flex items-center gap-2">
              <button 
