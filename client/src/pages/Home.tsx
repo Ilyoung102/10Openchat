@@ -13,16 +13,8 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 // App Version
 const APP_VERSION = "v1.01";
 
-// Initial welcome message
-const WELCOME_MESSAGE: ChatMessage = {
-  id: 'welcome',
-  role: 'assistant',
-  text: "# MAZI AI: ONLINE\nSystem initialized. Connected to Neural Network.\n\nI am ready to assist you with advanced analysis, coding, and creative tasks. How shall we proceed?",
-  timestamp: Date.now()
-};
-
 export default function Home() {
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
@@ -264,8 +256,9 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-2 custom-scrollbar">
           <button 
             onClick={() => {
-              setMessages([WELCOME_MESSAGE]);
+              setMessages([]);
               setActiveCategory(null);
+              audioPlayer.stop();
             }}
             className="w-full flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl border border-primary/20 hover:bg-primary/20 transition-all group mb-4"
           >
@@ -404,26 +397,44 @@ export default function Home() {
 
         {/* Chat Area */}
         <div className="flex-1 overflow-y-auto relative z-10 scroll-smooth custom-scrollbar" id="chat-container">
-          <div className="max-w-4xl mx-auto px-4 py-10 min-h-full flex flex-col justify-end">
-            {messages.map((msg) => (
-              <MessageBubble 
-                key={msg.id}
-                role={msg.role === 'user' ? 'user' : 'model'} // Map assistant to model for Bubble component
-                text={msg.text}
-                timestamp={msg.timestamp}
-                isError={msg.isError}
-                onPlayAudio={handlePlayAudio}
-              />
-            ))}
-            
-            {isLoading && (
-              <div className="mb-6 ml-12">
-                <TypingIndicator />
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} className="h-4" />
-          </div>
+          {messages.length === 0 && !isLoading ? (
+            <div className="h-full flex flex-col items-center justify-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="text-center"
+              >
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                  GOOD TIME
+                </h2>
+                <p className="text-lg md:text-xl text-gray-400">
+                  즐거운 시간 가지세요.
+                </p>
+              </motion.div>
+            </div>
+          ) : (
+            <div className="max-w-4xl mx-auto px-4 py-10 min-h-full flex flex-col justify-end">
+              {messages.map((msg) => (
+                <MessageBubble 
+                  key={msg.id}
+                  role={msg.role === 'user' ? 'user' : 'model'}
+                  text={msg.text}
+                  timestamp={msg.timestamp}
+                  isError={msg.isError}
+                  onPlayAudio={handlePlayAudio}
+                />
+              ))}
+              
+              {isLoading && (
+                <div className="mb-6 ml-12">
+                  <TypingIndicator />
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} className="h-4" />
+            </div>
+          )}
         </div>
 
         {/* Input Area */}
