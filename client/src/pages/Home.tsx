@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu } from 'lucide-react';
+import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft } from 'lucide-react';
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
 import { ChatMessage, streamOpenAIResponse, checkApiKey, saveApiKey, getModel, saveModel } from '@/lib/openai';
+import { SERVICE_DATA, ServiceItem } from '@/lib/prompts';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // Initial welcome message
@@ -24,6 +25,9 @@ export default function Home() {
   const [model, setModel] = useState('gpt-4o');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   
+  // Service Menu State
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,6 +98,18 @@ export default function Home() {
     }
   };
 
+  const handleServiceItemClick = (item: ServiceItem) => {
+    // Send the prompt as a user message, but maybe visually show the label?
+    // For now, just send the prompt directly as if the user typed it, 
+    // or maybe show the label as the user message and send the prompt as the actual payload?
+    // The legacy app sent the prompt directly.
+    handleSend(item.prompt);
+    // Close sidebar on mobile after selection
+    if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+    }
+  };
+
   const handleSaveSettings = () => {
     if (apiKey.trim()) {
       saveApiKey(apiKey);
@@ -102,6 +118,17 @@ export default function Home() {
       saveModel(model);
     }
     setShowSettingsModal(false);
+  };
+
+  const getCategoryIcon = (id: string) => {
+    switch(id) {
+      case 'weather_news': return <CloudSun size={16} />;
+      case 'cooking': return <Utensils size={16} />;
+      case 'health': return <Heart size={16} />;
+      case 'life': return <Lightbulb size={16} />;
+      case 'english': return <BookOpen size={16} />;
+      default: return <Sparkles size={16} />;
+    }
   };
 
   return (
@@ -196,16 +223,65 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-2">
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-2 custom-scrollbar">
           <button 
-            onClick={() => setMessages([WELCOME_MESSAGE])}
-            className="w-full flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl border border-primary/20 hover:bg-primary/20 transition-all group"
+            onClick={() => {
+              setMessages([WELCOME_MESSAGE]);
+              setActiveCategory(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl border border-primary/20 hover:bg-primary/20 transition-all group mb-4"
           >
             <Plus size={18} />
             <span className="font-medium text-sm">New Session</span>
           </button>
 
-          <div className="pt-6 pb-2 px-2">
+          {/* Services Menu */}
+          <div className="space-y-1">
+            <p className="px-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Functions</p>
+            
+            {activeCategory ? (
+               // Submenu View
+               <div className="animate-in slide-in-from-right-4 duration-200">
+                 <button 
+                   onClick={() => setActiveCategory(null)}
+                   className="w-full flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white mb-2 text-sm"
+                 >
+                   <ArrowLeft size={14} /> Back
+                 </button>
+                 
+                 <div className="space-y-1">
+                   {SERVICE_DATA.find(c => c.id === activeCategory)?.items.map((item) => (
+                     <button
+                       key={item.id}
+                       onClick={() => handleServiceItemClick(item)}
+                       className="w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-primary transition-colors text-xs truncate"
+                     >
+                       {item.label}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+            ) : (
+               // Main Categories
+               SERVICE_DATA.map((category) => (
+                <button 
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.id)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-500 group-hover:text-primary transition-colors">
+                      {getCategoryIcon(category.id)}
+                    </span>
+                    <span className="text-sm">{category.label}</span>
+                  </div>
+                  <ChevronRight size={14} className="text-gray-600 group-hover:text-white" />
+                </button>
+              ))
+            )}
+          </div>
+
+          <div className="pt-6 pb-2 px-2 mt-4 border-t border-white/5">
             <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Network Stats</p>
           </div>
 
@@ -219,10 +295,6 @@ export default function Home() {
               <span className="text-green-400 font-mono flex items-center gap-1">
                 <Activity size={10} /> 12ms
               </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">Security</span>
-              <span className="text-primary font-mono">Encrypted</span>
             </div>
           </div>
         </div>
