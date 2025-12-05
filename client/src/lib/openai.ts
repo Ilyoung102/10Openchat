@@ -75,3 +75,22 @@ export const streamOpenAIResponse = async (
     }
   }
 };
+
+export const generateSpeech = async (text: string) => {
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error("API Key not found");
+
+  const openai = new OpenAI({
+    apiKey: apiKey,
+    dangerouslyAllowBrowser: true 
+  });
+
+  const mp3 = await openai.audio.speech.create({
+    model: "tts-1",
+    voice: "alloy",
+    input: text,
+  });
+
+  const buffer = await mp3.arrayBuffer();
+  return buffer;
+};

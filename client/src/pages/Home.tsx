@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft } from 'lucide-react';
+import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
-import { ChatMessage, streamOpenAIResponse, checkApiKey, saveApiKey, getModel, saveModel } from '@/lib/openai';
+import { ChatMessage, streamOpenAIResponse, checkApiKey, saveApiKey, getModel, saveModel, generateSpeech } from '@/lib/openai';
 import { SERVICE_DATA, ServiceItem } from '@/lib/prompts';
+import { audioPlayer } from '@/lib/audio-player';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // Initial welcome message
@@ -27,6 +28,9 @@ export default function Home() {
   
   // Service Menu State
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  // Audio State
+  const [isTTSActive, setIsTTSActive] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +67,9 @@ export default function Home() {
     setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
 
+    // Stop any current audio
+    audioPlayer.stop();
+
     try {
       // Create a placeholder for the AI response
       const botMsgId = (Date.now() + 1).toString();
@@ -73,10 +80,13 @@ export default function Home() {
         timestamp: Date.now()
       }]);
 
+      let fullResponse = "";
+
       await streamOpenAIResponse(
         messages, // Pass history
         text, // New message
         (chunk) => {
+          fullResponse += chunk;
           setMessages(prev => prev.map(msg => 
             msg.id === botMsgId 
               ? { ...msg, text: msg.text + chunk }
@@ -84,6 +94,17 @@ export default function Home() {
           ));
         }
       );
+
+      // Auto-play audio if enabled
+      if (isTTSActive && fullResponse) {
+        try {
+          const audioBuffer = await generateSpeech(fullResponse);
+          audioPlayer.play(audioBuffer);
+        } catch (e) {
+          console.error("Auto-TTS failed", e);
+        }
+      }
+
     } catch (error: any) {
       console.error(error);
       setMessages(prev => [...prev, {
@@ -98,13 +119,19 @@ export default function Home() {
     }
   };
 
+  const handlePlayAudio = async (text: string) => {
+    if (!text) return;
+    try {
+      audioPlayer.stop();
+      const audioBuffer = await generateSpeech(text);
+      audioPlayer.play(audioBuffer);
+    } catch (e) {
+      console.error("Manual TTS failed", e);
+    }
+  };
+
   const handleServiceItemClick = (item: ServiceItem) => {
-    // Send the prompt as a user message, but maybe visually show the label?
-    // For now, just send the prompt directly as if the user typed it, 
-    // or maybe show the label as the user message and send the prompt as the actual payload?
-    // The legacy app sent the prompt directly.
     handleSend(item.prompt);
-    // Close sidebar on mobile after selection
     if (window.innerWidth < 768) {
         setIsSidebarOpen(false);
     }
@@ -300,13 +327,25 @@ export default function Home() {
         </div>
 
         <div className="p-4 border-t border-white/5">
-          <button 
-            onClick={() => setShowSettingsModal(true)}
-            className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-          >
-            <Settings size={18} />
-            <span className="text-sm">System Settings</span>
-          </button>
+          <div className="flex gap-2">
+            <button 
+                onClick={() => setIsTTSActive(!isTTSActive)}
+                className={cn(
+                    "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border",
+                    isTTSActive 
+                        ? "bg-primary/10 text-primary border-primary/20" 
+                        : "text-gray-400 border-transparent hover:bg-white/5"
+                )}
+            >
+                {isTTSActive ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            </button>
+            <button 
+                onClick={() => setShowSettingsModal(true)}
+                className="flex items-center justify-center p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors flex-1 border border-transparent"
+            >
+                <Settings size={18} />
+            </button>
+          </div>
         </div>
       </motion.aside>
 
@@ -318,9 +357,20 @@ export default function Home() {
             <Sparkles className="text-primary" size={20} />
             <span className="font-bold text-white">MAZI AI</span>
           </div>
-          <button onClick={() => setShowSettingsModal(true)}>
-            <Settings size={20} className="text-gray-400" />
-          </button>
+          <div className="flex items-center gap-2">
+             <button 
+                onClick={() => setIsTTSActive(!isTTSActive)}
+                className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    isTTSActive ? "text-primary" : "text-gray-400"
+                )}
+             >
+                 {isTTSActive ? <Volume2 size={20} /> : <VolumeX size={20} />}
+             </button>
+             <button onClick={() => setShowSettingsModal(true)}>
+               <Settings size={20} className="text-gray-400" />
+             </button>
+          </div>
         </header>
 
         {/* Background Visuals */}
@@ -351,6 +401,7 @@ export default function Home() {
                 text={msg.text}
                 timestamp={msg.timestamp}
                 isError={msg.isError}
+                onPlayAudio={handlePlayAudio}
               />
             ))}
             

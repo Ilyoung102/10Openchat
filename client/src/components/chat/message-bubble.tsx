@@ -1,27 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { motion } from 'framer-motion';
-import { User, Bot, Copy, Check } from 'lucide-react';
+import { User, Bot, Copy, Check, Volume2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
 
 interface MessageBubbleProps {
-  role: 'user' | 'model' | 'assistant'; // Added assistant
+  role: 'user' | 'model' | 'assistant';
   text: string;
   timestamp: number;
   isError?: boolean;
+  onPlayAudio?: (text: string) => void;
 }
 
-export const MessageBubble = ({ role, text, timestamp, isError }: MessageBubbleProps) => {
+export const MessageBubble = ({ role, text, timestamp, isError, onPlayAudio }: MessageBubbleProps) => {
   const isUser = role === 'user';
   const [copied, setCopied] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handlePlay = () => {
+    if (onPlayAudio) {
+      setIsPlaying(true);
+      onPlayAudio(text);
+      setTimeout(() => setIsPlaying(false), 3000); // Reset icon after delay (placeholder for real state)
+    }
   };
 
   return (
@@ -56,17 +65,30 @@ export const MessageBubble = ({ role, text, timestamp, isError }: MessageBubbleP
               ? "bg-red-500/10 border-red-500/30 text-red-200 rounded-tl-none"
               : "bg-secondary/40 border-white/10 text-gray-100 rounded-tl-none"
         )}>
-          {/* Header (Time & Copy) */}
+          {/* Header (Time, Copy, Audio) */}
           <div className="flex justify-between items-center mb-2 opacity-50 text-xs">
             <span>{new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            {!isUser && (
-              <button 
-                onClick={handleCopy} 
-                className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-white"
-              >
-                {copied ? <Check size={12} /> : <Copy size={12} />}
-              </button>
-            )}
+            
+            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+               {!isUser && onPlayAudio && (
+                <button 
+                  onClick={handlePlay} 
+                  className="hover:text-white text-gray-400 transition-colors"
+                  title="Read Aloud"
+                >
+                  {isPlaying ? <Loader2 size={12} className="animate-spin" /> : <Volume2 size={12} />}
+                </button>
+              )}
+              {!isUser && (
+                <button 
+                  onClick={handleCopy} 
+                  className="hover:text-white text-gray-400 transition-colors"
+                  title="Copy"
+                >
+                  {copied ? <Check size={12} /> : <Copy size={12} />}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Markdown Content */}
