@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.06";
+const APP_VERSION = "v1.07";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -392,11 +392,11 @@ export default function Home() {
                 transition={{ duration: 0.6 }}
                 className="text-center"
               >
-                <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                   GOOD TIME
                 </h2>
-                <p className="text-lg md:text-xl text-gray-400">
-                  <span className="text-[1.25em] text-sky-400 font-semibold italic tracking-wide" style={{fontFamily: 'Georgia, serif'}}>마지</span>와 즐거운 시간 가지세요.
+                <p className="text-lg md:text-xl text-gray-400 mt-4">
+                  <span className="text-[1.25em] text-white font-bold tracking-wider" style={{fontFamily: 'Impact, Haettenschweiler, sans-serif'}}>마지</span>와 즐거운 시간 가지세요.
                 </p>
               </motion.div>
             </div>
