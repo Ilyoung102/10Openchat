@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
+import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX, MoreVertical, Trash2, Edit2, ArrowUp, Pin, MessageSquare, Download, Upload, Save } from 'lucide-react';
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
@@ -9,9 +9,25 @@ import { SERVICE_DATA, ServiceItem } from '@/lib/prompts';
 import { audioPlayer } from '@/lib/audio-player';
 import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
+import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
 const APP_VERSION = "v1.18";
+
+const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
+const CURRENT_SESSION_KEY = 'mazi-current-session';
+
+const generateSessionId = () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+const generateSessionTitle = (messages: ChatMessage[]): string => {
+  if (messages.length === 0) return '새 대화';
+  const firstUserMsg = messages.find(m => m.role === 'user');
+  if (firstUserMsg) {
+    const text = firstUserMsg.text.slice(0, 30);
+    return text.length < firstUserMsg.text.length ? text + '...' : text;
+  }
+  return '새 대화';
+};
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -33,6 +49,16 @@ export default function Home() {
   // Audio State
   const [isTTSActive, setIsTTSActive] = useState(false);
   const isTTSActiveRef = useRef(isTTSActive);
+
+  // Session State
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const editInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +82,213 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  // Load sessions from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedSessions = localStorage.getItem(SESSIONS_STORAGE_KEY);
+      const savedCurrentId = localStorage.getItem(CURRENT_SESSION_KEY);
+      
+      if (savedSessions) {
+        const parsed = JSON.parse(savedSessions) as ChatSession[];
+        setSessions(parsed);
+        
+        if (savedCurrentId && parsed.find(s => s.id === savedCurrentId)) {
+          setCurrentSessionId(savedCurrentId);
+          const currentSession = parsed.find(s => s.id === savedCurrentId);
+          if (currentSession) {
+            setMessages(currentSession.messages);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load sessions', e);
+    }
+  }, []);
+
+  // Save sessions to localStorage when changed
+  useEffect(() => {
+    if (sessions.length > 0) {
+      localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+    }
+  }, [sessions]);
+
+  // Save current session ID
+  useEffect(() => {
+    if (currentSessionId) {
+      localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId);
+    }
+  }, [currentSessionId]);
+
+  // Sync messages to current session
+  useEffect(() => {
+    if (currentSessionId && messages.length > 0) {
+      setSessions(prev => prev.map(session => 
+        session.id === currentSessionId 
+          ? { 
+              ...session, 
+              messages, 
+              title: generateSessionTitle(messages),
+              updatedAt: Date.now() 
+            }
+          : session
+      ));
+    }
+  }, [messages, currentSessionId]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpenId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Focus edit input when editing
+  useEffect(() => {
+    if (editingId && editInputRef.current) {
+      editInputRef.current.focus();
+    }
+  }, [editingId]);
+
+  // Session handlers
+  const handleNewSession = () => {
+    // Save current messages to a new session if there are any
+    if (messages.length > 0 && !currentSessionId) {
+      const newSession: ChatSession = {
+        id: generateSessionId(),
+        title: generateSessionTitle(messages),
+        messages: messages,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        pinned: false
+      };
+      setSessions(prev => [newSession, ...prev]);
+    }
+    
+    // Clear messages and start fresh
+    setMessages([]);
+    setCurrentSessionId(null);
+    setActiveCategory(null);
+    audioPlayer.stop();
+  };
+
+  const handleSaveCurrentChat = () => {
+    if (messages.length === 0) return;
+    
+    if (currentSessionId) {
+      // Already in a session, just update it
+      setSessions(prev => prev.map(session => 
+        session.id === currentSessionId 
+          ? { ...session, messages, title: generateSessionTitle(messages), updatedAt: Date.now() }
+          : session
+      ));
+    } else {
+      // Create a new session
+      const newSession: ChatSession = {
+        id: generateSessionId(),
+        title: generateSessionTitle(messages),
+        messages: messages,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        pinned: false
+      };
+      setSessions(prev => [newSession, ...prev]);
+      setCurrentSessionId(newSession.id);
+    }
+  };
+
+  const handleSelectSession = (id: string) => {
+    const session = sessions.find(s => s.id === id);
+    if (session) {
+      setMessages(session.messages);
+      setCurrentSessionId(id);
+    }
+  };
+
+  const handleDeleteSession = (id: string) => {
+    setSessions(prev => prev.filter(s => s.id !== id));
+    if (currentSessionId === id) {
+      setMessages([]);
+      setCurrentSessionId(null);
+    }
+    setMenuOpenId(null);
+  };
+
+  const handleRenameSession = (id: string, newTitle: string) => {
+    setSessions(prev => prev.map(s => 
+      s.id === id ? { ...s, title: newTitle, updatedAt: Date.now() } : s
+    ));
+    setEditingId(null);
+  };
+
+  const handleTogglePin = (id: string) => {
+    setSessions(prev => prev.map(s => 
+      s.id === id ? { ...s, pinned: !s.pinned, updatedAt: Date.now() } : s
+    ));
+    setMenuOpenId(null);
+  };
+
+  const handleStartEdit = (session: ChatSession) => {
+    setEditingId(session.id);
+    setEditTitle(session.title);
+    setMenuOpenId(null);
+  };
+
+  const handleFinishEdit = () => {
+    if (editingId && editTitle.trim()) {
+      handleRenameSession(editingId, editTitle.trim());
+    }
+    setEditingId(null);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleFinishEdit();
+    if (e.key === 'Escape') setEditingId(null);
+  };
+
+  const handleExportSessions = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sessions));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    const date = new Date().toISOString().slice(0, 10);
+    downloadAnchorNode.setAttribute("download", `mazi-chat-backup-${date}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target?.result as string) as ChatSession[];
+        setSessions(prev => [...parsed, ...prev]);
+      } catch (err) {
+        console.error("Failed to parse backup file", err);
+        alert("파일을 읽는 중 오류가 발생했습니다.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  // Sort sessions: Pinned first, then by updatedAt desc
+  const sortedSessions = [...sessions].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return b.updatedAt - a.updatedAt;
+  });
 
   const handleSend = async (text: string, displayText?: string) => {
     if (!checkApiKey()) {
