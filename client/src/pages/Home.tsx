@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.09";
+const APP_VERSION = "v1.10";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -47,7 +47,7 @@ export default function Home() {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const handleSend = async (text: string) => {
+  const handleSend = async (text: string, displayText?: string) => {
     if (!checkApiKey()) {
         setShowSettingsModal(true);
         return;
@@ -56,7 +56,7 @@ export default function Home() {
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      text,
+      text: displayText || text,
       timestamp: Date.now()
     };
 
@@ -80,7 +80,7 @@ export default function Home() {
 
       await streamOpenAIResponse(
         messages, // Pass history
-        text, // New message
+        text, // Actual prompt to send (not displayText)
         (chunk) => {
           fullResponse += chunk;
           setMessages(prev => prev.map(msg => 
@@ -134,7 +134,7 @@ export default function Home() {
   };
 
   const handleServiceItemClick = (item: ServiceItem) => {
-    handleSend(item.prompt);
+    handleSend(item.prompt, item.label);
     if (window.innerWidth < 768) {
         setIsSidebarOpen(false);
     }
