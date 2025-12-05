@@ -90,7 +90,14 @@ export default function Home() {
           fullResponse += chunk;
           setMessages(prev => prev.map(msg => 
             msg.id === botMsgId 
-              ? { ...msg, text: msg.text + chunk }
+              ? { ...msg, text: msg.text + chunk, isSearching: false }
+              : msg
+          ));
+        },
+        (query) => {
+          setMessages(prev => prev.map(msg => 
+            msg.id === botMsgId 
+              ? { ...msg, text: `🔍 웹 검색 중: "${query}"...`, isSearching: true }
               : msg
           ));
         }

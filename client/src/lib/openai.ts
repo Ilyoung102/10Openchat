@@ -1,15 +1,11 @@
-import OpenAI from "openai";
-
-// Initialize the API key
-export const getApiKey = () => {
-  return (
-    import.meta.env.VITE_OPENAI_API_KEY ||
-    // @ts-ignore
-    import.meta.env.OPENAI_API_KEY || 
-    localStorage.getItem("OPENAI_API_KEY") || 
-    ""
-  );
-};
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  text: string;
+  timestamp: number;
+  isError?: boolean;
+  isSearching?: boolean;
+}
 
 export const getModel = () => {
   return localStorage.getItem("OPENAI_MODEL") || "gpt-4o";
@@ -20,77 +16,114 @@ export const saveModel = (model: string) => {
 };
 
 export const checkApiKey = () => {
-  return !!getApiKey();
+  return true;
 };
 
 export const saveApiKey = (key: string) => {
-  localStorage.setItem("OPENAI_API_KEY", key);
 };
-
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant" | "system";
-  text: string;
-  timestamp: number;
-  isError?: boolean;
-}
 
 export const streamOpenAIResponse = async (
   history: ChatMessage[],
   newMessage: string,
-  onChunk: (text: string) => void
+  onChunk: (text: string) => void,
+  onSearching?: (query: string) => void
 ) => {
-  const apiKey = getApiKey();
   const model = getModel();
-  
-  if (!apiKey) throw new Error("API Key not found");
 
-  const openai = new OpenAI({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true // Required for client-side usage
-  });
-
-  // Filter out error messages and ensure proper format
   const validHistory = history
-    .filter(msg => !msg.isError && msg.id !== 'welcome') // Remove welcome/error messages from context
+    .filter(msg => !msg.isError && msg.id !== 'welcome')
     .map(msg => ({
       role: msg.role as "user" | "assistant" | "system",
       content: msg.text
     }));
 
-  const stream = await openai.chat.completions.create({
-    model: model, 
-    messages: [
-      { role: "system", content: "You are MAZI AI, a futuristic, advanced AI companion. You are helpful, precise, and have a slight cyberpunk personality." },
-      ...validHistory,
-      { role: "user", content: newMessage }
-    ],
-    stream: true,
+  const messages = [
+    ...validHistory,
+    { role: "user" as const, content: newMessage }
+  ];
+
+  const response = await fetch("/api/chat/stream", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ messages, model }),
   });
 
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content || "";
-    if (content) {
-      onChunk(content);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to get response");
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error("No response body");
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (line.startsWith("data: ")) {
+        try {
+          const data = JSON.parse(line.slice(6));
+          
+          if (data.type === "content") {
+            onChunk(data.content);
+          } else if (data.type === "searching" && onSearching) {
+            onSearching(data.query);
+          } else if (data.type === "error") {
+            throw new Error(data.error);
+          }
+        } catch (e) {
+          if (e instanceof SyntaxError) {
+            continue;
+          }
+          throw e;
+        }
+      }
     }
   }
 };
 
-export const generateSpeech = async (text: string) => {
-  const apiKey = getApiKey();
-  if (!apiKey) throw new Error("API Key not found");
-
-  const openai = new OpenAI({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true 
+export const generateSpeech = async (text: string): Promise<ArrayBuffer> => {
+  const response = await fetch("/api/tts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text, voice: "alloy" }),
   });
 
-  const mp3 = await openai.audio.speech.create({
-    model: "tts-1",
-    voice: "alloy",
-    input: text,
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to generate speech");
+  }
+
+  return response.arrayBuffer();
+};
+
+export const searchWeb = async (query: string) => {
+  const response = await fetch("/api/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query }),
   });
 
-  const buffer = await mp3.arrayBuffer();
-  return buffer;
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to search");
+  }
+
+  return response.json();
 };
