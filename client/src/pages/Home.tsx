@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.05";
+const APP_VERSION = "v1.06";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -264,7 +264,7 @@ export default function Home() {
               setActiveCategory(null);
               audioPlayer.stop();
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 bg-primary/20 text-primary rounded-xl border border-primary/40 hover:bg-primary/30 transition-all group mb-4 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary/20 text-primary rounded-xl border border-primary/40 hover:bg-primary/30 transition-all group mb-4 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
           >
             <Plus size={18} />
             <span className="font-medium text-sm">New Session</span>
@@ -396,19 +396,8 @@ export default function Home() {
                   GOOD TIME
                 </h2>
                 <p className="text-lg md:text-xl text-gray-400">
-                  <span className="text-[1.25em] text-sky-400 font-semibold">마지</span>와 즐거운 시간 가지세요.
+                  <span className="text-[1.25em] text-sky-400 font-semibold italic tracking-wide" style={{fontFamily: 'Georgia, serif'}}>마지</span>와 즐거운 시간 가지세요.
                 </p>
-                <button 
-                  onClick={() => {
-                    setMessages([]);
-                    setActiveCategory(null);
-                    audioPlayer.stop();
-                  }}
-                  className="mt-8 px-6 py-3 bg-primary/20 text-primary rounded-xl border border-primary/40 hover:bg-primary/30 transition-all shadow-[0_0_10px_rgba(6,182,212,0.2)] font-medium"
-                  data-testid="button-new-session-center"
-                >
-                  New Session
-                </button>
               </motion.div>
             </div>
           ) : (
