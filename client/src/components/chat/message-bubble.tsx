@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 interface MessageBubbleProps {
-  role: 'user' | 'model';
+  role: 'user' | 'model' | 'assistant'; // Added assistant
   text: string;
   timestamp: number;
   isError?: boolean;
