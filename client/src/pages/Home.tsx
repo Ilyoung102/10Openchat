@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.12";
+const APP_VERSION = "v1.13";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -424,7 +424,7 @@ export default function Home() {
                   GOOD TIME
                 </h2>
                 <p className="text-lg md:text-xl text-gray-400 mt-4">
-                  <span className="text-[1.5em] text-white font-bold tracking-wider" style={{fontFamily: '"Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'}}>마지</span>와 즐거운 시간 가지세요.
+                  <span className="text-[1.5em] text-white font-bold tracking-wider" style={{fontFamily: '"Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'}}>순향</span>과 좋은 시간 가지세요.
                 </p>
               </motion.div>
             </div>
