@@ -1,0 +1,7 @@
+{
+  "name": "MAZI AI Companion",
+  "description": "A conversational AI assistant with real-time web search capabilities, designed with a mobile-first Android aesthetic.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
