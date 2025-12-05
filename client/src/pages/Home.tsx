@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.04";
+const APP_VERSION = "v1.05";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -203,8 +203,12 @@ export default function Home() {
 
                 <div>
                     <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
-                      <Cpu size={12} /> MODEL ID
+                      <Cpu size={12} /> CORE MODEL
                     </label>
+                    <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-primary/10 rounded-lg border border-primary/20">
+                      <span className="text-[10px] text-gray-400">현재:</span>
+                      <span className="text-sm text-primary font-mono font-semibold">{model}</span>
+                    </div>
                     <input 
                         type="text" 
                         value={model}
@@ -213,7 +217,7 @@ export default function Home() {
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
                     />
                     <p className="text-[10px] text-gray-500 mt-1">
-                      Enter "gpt-4o", "gpt-4-turbo", or "gpt-5" (when released).
+                      gpt-4o, gpt-4-turbo, gpt-5 등 모델 ID 입력
                     </p>
                 </div>
                 
@@ -249,7 +253,7 @@ export default function Home() {
           </div>
           <div>
             <h1 className="font-bold text-2xl tracking-tight text-white">MAZI AI <span className="text-primary text-base font-mono">{APP_VERSION}</span></h1>
-            <p className="text-[10px] text-primary font-mono tracking-wider uppercase">{model} // CONNECTED</p>
+            <p className="text-[10px] text-green-400 font-mono tracking-wider uppercase">● CONNECTED</p>
           </div>
         </div>
 
@@ -310,23 +314,6 @@ export default function Home() {
                 </button>
               ))
             )}
-          </div>
-
-          <div className="pt-6 pb-2 px-2 mt-4 border-t border-white/5">
-            <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Network Stats</p>
-          </div>
-
-          <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/5 space-y-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">Core</span>
-              <span className="text-white font-mono">{model}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">Latency</span>
-              <span className="text-green-400 font-mono flex items-center gap-1">
-                <Activity size={10} /> 12ms
-              </span>
-            </div>
           </div>
         </div>
 
@@ -409,8 +396,19 @@ export default function Home() {
                   GOOD TIME
                 </h2>
                 <p className="text-lg md:text-xl text-gray-400">
-                  즐거운 시간 가지세요.
+                  <span className="text-[1.25em] text-sky-400 font-semibold">마지</span>와 즐거운 시간 가지세요.
                 </p>
+                <button 
+                  onClick={() => {
+                    setMessages([]);
+                    setActiveCategory(null);
+                    audioPlayer.stop();
+                  }}
+                  className="mt-8 px-6 py-3 bg-primary/20 text-primary rounded-xl border border-primary/40 hover:bg-primary/30 transition-all shadow-[0_0_10px_rgba(6,182,212,0.2)] font-medium"
+                  data-testid="button-new-session-center"
+                >
+                  New Session
+                </button>
               </motion.div>
             </div>
           ) : (
