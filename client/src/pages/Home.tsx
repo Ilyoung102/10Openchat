@@ -11,12 +11,17 @@ import { cn } from '@/lib/utils';
 import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core_glowing_sphere.png';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.10";
+const APP_VERSION = "v1.11";
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768;
+    }
+    return true;
+  });
   
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('gpt-4o');
@@ -241,11 +246,31 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* Mobile Sidebar Backdrop */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <motion.aside 
         initial={false}
-        animate={{ width: isSidebarOpen ? 280 : 0, opacity: isSidebarOpen ? 1 : 0 }}
-        className="h-full bg-black/40 backdrop-blur-md border-r border-white/5 hidden md:flex flex-col overflow-hidden relative z-10"
+        animate={{ 
+          width: isSidebarOpen ? 280 : 0, 
+          opacity: isSidebarOpen ? 1 : 0,
+          x: isSidebarOpen ? 0 : -280
+        }}
+        className={cn(
+          "h-full bg-black/95 md:bg-black/40 backdrop-blur-md border-r border-white/5 flex flex-col overflow-hidden z-40",
+          "fixed md:relative left-0 top-0"
+        )}
       >
         <div className="p-6 border-b border-white/5 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.3)]">
@@ -344,10 +369,13 @@ export default function Home() {
       <main className="flex-1 flex flex-col h-full relative">
         {/* Mobile Header */}
         <header className="md:hidden h-16 border-b border-white/5 flex items-center justify-between px-4 bg-black/40 backdrop-blur-md z-20">
-          <div className="flex items-center gap-3">
-            <Sparkles className="text-primary" size={20} />
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="flex items-center gap-3 active:opacity-70 transition-opacity"
+          >
+            <Menu className="text-primary" size={20} />
             <span className="font-bold text-xl text-white">MAZI AI <span className="text-primary text-sm font-mono">{APP_VERSION}</span></span>
-          </div>
+          </button>
           <div className="flex items-center gap-2">
              <button 
                 onClick={() => setIsTTSActive(!isTTSActive)}
