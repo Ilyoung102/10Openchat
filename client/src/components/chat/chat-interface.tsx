@@ -12,6 +12,7 @@ interface ChatInputProps {
   onStopWordDetected?: () => void;
   wakeWordEnabled?: boolean;
   onWakeWordEnabledChange?: (enabled: boolean) => void;
+  onWakeWordTriggered?: () => void;
 }
 
 export const ChatInput = ({ 
@@ -20,7 +21,8 @@ export const ChatInput = ({
   isTTSPlaying = false, 
   onStopWordDetected,
   wakeWordEnabled = false,
-  onWakeWordEnabledChange
+  onWakeWordEnabledChange,
+  onWakeWordTriggered
 }: ChatInputProps) => {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -63,8 +65,9 @@ export const ChatInput = ({
     if (!isListening && !isLoadingRef.current) {
       setInput('');
       startListening();
+      onWakeWordTriggered?.();
     }
-  }, [isListening, startListening]);
+  }, [isListening, startListening, onWakeWordTriggered]);
 
   const { isWakeListening, hasSupport: wakeHasSupport } = useWakeWord({
     onWakeWordDetected: handleWakeWordDetected,
