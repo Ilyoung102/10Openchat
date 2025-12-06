@@ -157,7 +157,7 @@ export const SERVICE_DATA: ServiceCategory[] = [
   },
   {
     id: 'ott_links',
-    label: 'OTT 링크',
+    label: 'OTT 음원',
     items: [
       { id: 'netflix', icon: '🎬', label: 'Netflix', prompt: '', link: 'https://www.netflix.com/' },
       { id: 'coupang_play', icon: '🛒', label: '쿠팡플레이', prompt: '', link: 'https://www.coupangplay.com/' },

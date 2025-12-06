@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.36";
+const APP_VERSION = "v1.37";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -83,24 +83,18 @@ export default function Home() {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  // Load sessions from localStorage on mount
+  // Load sessions from localStorage on mount (but always start with new chat)
   useEffect(() => {
     try {
       const savedSessions = localStorage.getItem(SESSIONS_STORAGE_KEY);
-      const savedCurrentId = localStorage.getItem(CURRENT_SESSION_KEY);
       
       if (savedSessions) {
         const parsed = JSON.parse(savedSessions) as ChatSession[];
         setSessions(parsed);
-        
-        if (savedCurrentId && parsed.find(s => s.id === savedCurrentId)) {
-          setCurrentSessionId(savedCurrentId);
-          const currentSession = parsed.find(s => s.id === savedCurrentId);
-          if (currentSession) {
-            setMessages(currentSession.messages);
-          }
-        }
       }
+      // Always start with empty new chat state
+      setCurrentSessionId(null);
+      setMessages([]);
     } catch (e) {
       console.error('Failed to load sessions', e);
     }
