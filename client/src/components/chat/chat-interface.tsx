@@ -7,9 +7,11 @@ import { cn } from '@/lib/utils';
 interface ChatInputProps {
   onSend: (text: string) => void;
   isLoading: boolean;
+  isTTSPlaying?: boolean;
+  onStopWordDetected?: () => void;
 }
 
-export const ChatInput = ({ onSend, isLoading }: ChatInputProps) => {
+export const ChatInput = ({ onSend, isLoading, isTTSPlaying = false, onStopWordDetected }: ChatInputProps) => {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const onSendRef = useRef(onSend);
@@ -26,6 +28,9 @@ export const ChatInput = ({ onSend, isLoading }: ChatInputProps) => {
     startListening, 
     stopListening, 
     cancelAutoSend,
+    pauseForTTS,
+    resumeFromTTS,
+    isPausedForTTS,
     error,
     hasSupport,
     countdown,
@@ -38,9 +43,20 @@ export const ChatInput = ({ onSend, isLoading }: ChatInputProps) => {
         setInput('');
       }
     }, []),
+    onStopWordDetected: onStopWordDetected,
     lang: 'ko-KR',
-    autoSendDelayMs: 1500
+    autoSendDelayMs: 1500,
+    pauseWhenTTSPlaying: true
   });
+
+  // TTS 재생 상태에 따라 마이크 일시 정지/재개
+  useEffect(() => {
+    if (isTTSPlaying) {
+      pauseForTTS();
+    } else {
+      resumeFromTTS();
+    }
+  }, [isTTSPlaying, pauseForTTS, resumeFromTTS]);
 
   const handleSubmit = () => {
     if (!input.trim() || isLoading) return;
@@ -89,10 +105,20 @@ export const ChatInput = ({ onSend, isLoading }: ChatInputProps) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-red-500/20 text-red-400 px-4 py-2 rounded-full backdrop-blur-md border border-red-500/30"
+            className={cn(
+              "absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border",
+              isPausedForTTS 
+                ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                : "bg-red-500/20 text-red-400 border-red-500/30"
+            )}
           >
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            <span className="text-xs font-medium">음성 인식 중...</span>
+            <div className={cn(
+              "w-2 h-2 rounded-full",
+              isPausedForTTS ? "bg-yellow-500" : "bg-red-500 animate-pulse"
+            )} />
+            <span className="text-xs font-medium">
+              {isPausedForTTS ? "TTS 재생 중 (대기)" : "음성 인식 중..."}
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -193,10 +219,12 @@ export const ChatInput = ({ onSend, isLoading }: ChatInputProps) => {
               !hasSupport 
                 ? "text-gray-600 cursor-not-allowed"
                 : isListening 
-                  ? "text-red-400 bg-red-500/20 animate-pulse" 
+                  ? isPausedForTTS
+                    ? "text-yellow-400 bg-yellow-500/20"
+                    : "text-red-400 bg-red-500/20 animate-pulse"
                   : "text-gray-400 hover:text-white hover:bg-white/10"
             )}
-            title={!hasSupport ? "음성 인식을 지원하지 않습니다" : isListening ? "음성 인식 중지" : "음성으로 입력"}
+            title={!hasSupport ? "음성 인식을 지원하지 않습니다" : isListening ? (isPausedForTTS ? "TTS 재생 중" : "음성 인식 중지") : "음성으로 입력"}
             data-testid="button-voice"
           >
             {isListening ? <StopCircle size={20} /> : <Mic size={20} />}

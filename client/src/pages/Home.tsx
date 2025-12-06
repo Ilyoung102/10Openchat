@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.37";
+const APP_VERSION = "v1.38";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -49,6 +49,30 @@ export default function Home() {
   // Audio State
   const [isTTSActive, setIsTTSActive] = useState(false);
   const isTTSActiveRef = useRef(isTTSActive);
+  const [isTTSPlaying, setIsTTSPlaying] = useState(false);
+
+  // TTS toggle handler - immediately stop audio when toggled off
+  const handleTTSToggle = () => {
+    if (isTTSActive) {
+      audioPlayer.stop();
+    }
+    setIsTTSActive(!isTTSActive);
+  };
+
+  // Stop TTS when stop word is detected
+  const handleStopWordDetected = () => {
+    audioPlayer.stop();
+  };
+
+  // Connect audio player to TTS playing state
+  useEffect(() => {
+    audioPlayer.setOnPlayStateChange((playing) => {
+      setIsTTSPlaying(playing);
+    });
+    return () => {
+      audioPlayer.setOnPlayStateChange(null);
+    };
+  }, []);
 
   // Session State
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -718,7 +742,7 @@ export default function Home() {
         <div className="p-4 border-t border-white/5">
           <div className="flex gap-2">
             <button 
-                onClick={() => setIsTTSActive(!isTTSActive)}
+                onClick={handleTTSToggle}
                 className={cn(
                     "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border",
                     isTTSActive 
@@ -754,7 +778,7 @@ export default function Home() {
           </button>
           <div className="flex items-center gap-2">
              <button 
-                onClick={() => setIsTTSActive(!isTTSActive)}
+                onClick={handleTTSToggle}
                 className={cn(
                     "p-2 rounded-lg transition-colors",
                     isTTSActive ? "text-primary" : "text-gray-400"
@@ -874,7 +898,12 @@ export default function Home() {
 
           {/* Chat Input */}
           <div className="bg-gradient-to-t from-background via-background to-transparent pt-2 pb-2">
-            <ChatInput onSend={handleSend} isLoading={isLoading} />
+            <ChatInput 
+              onSend={handleSend} 
+              isLoading={isLoading}
+              isTTSPlaying={isTTSPlaying}
+              onStopWordDetected={handleStopWordDetected}
+            />
           </div>
         </div>
       </main>

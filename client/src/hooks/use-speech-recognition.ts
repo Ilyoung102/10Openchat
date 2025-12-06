@@ -1,23 +1,31 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
+// 정지 신호 단어 목록
+const STOP_WORDS = ['스톱', '정지', '그만', '알았어', '내말 들어봐', '내 말 들어봐', '멈춰', '중지'];
+
 interface UseSpeechRecognitionProps {
   onResult?: (transcript: string) => void;
   onSpeechEnd?: (finalTranscript: string) => void;
+  onStopWordDetected?: () => void;
   lang?: string;
   autoSendDelayMs?: number;
+  pauseWhenTTSPlaying?: boolean;
 }
 
 export const useSpeechRecognition = ({ 
   onResult, 
   onSpeechEnd,
+  onStopWordDetected,
   lang = 'ko-KR',
-  autoSendDelayMs = 2000
+  autoSendDelayMs = 2000,
+  pauseWhenTTSPlaying = true
 }: UseSpeechRecognitionProps = {}) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [hasSupport, setHasSupport] = useState(true);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [isPausedForTTS, setIsPausedForTTS] = useState(false);
   
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
@@ -26,11 +34,15 @@ export const useSpeechRecognition = ({
   const accumulatedTranscriptRef = useRef<string>('');
   const onResultRef = useRef(onResult);
   const onSpeechEndRef = useRef(onSpeechEnd);
+  const onStopWordDetectedRef = useRef(onStopWordDetected);
+  const isPausedForTTSRef = useRef(false);
+  const lastFinalResultRef = useRef<string>('');
 
   useEffect(() => {
     onResultRef.current = onResult;
     onSpeechEndRef.current = onSpeechEnd;
-  }, [onResult, onSpeechEnd]);
+    onStopWordDetectedRef.current = onStopWordDetected;
+  }, [onResult, onSpeechEnd, onStopWordDetected]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -61,6 +73,11 @@ export const useSpeechRecognition = ({
     setCountdown(null);
   }, []);
 
+  const checkStopWords = useCallback((text: string): boolean => {
+    const lowerText = text.toLowerCase().trim();
+    return STOP_WORDS.some(word => lowerText.includes(word.toLowerCase()));
+  }, []);
+
   const startAutoSendTimer = useCallback(() => {
     clearTimers();
     
@@ -89,6 +106,7 @@ export const useSpeechRecognition = ({
         onSpeechEndRef.current(finalText);
       }
       accumulatedTranscriptRef.current = '';
+      lastFinalResultRef.current = '';
       setTranscript('');
       clearTimers();
     }, autoSendDelayMs);
@@ -98,6 +116,8 @@ export const useSpeechRecognition = ({
     clearTimers();
     isListeningRef.current = false;
     setIsListening(false);
+    setIsPausedForTTS(false);
+    isPausedForTTSRef.current = false;
     
     if (recognitionRef.current) {
       try {
@@ -109,8 +129,128 @@ export const useSpeechRecognition = ({
     }
     
     accumulatedTranscriptRef.current = '';
+    lastFinalResultRef.current = '';
     setTranscript('');
   }, [clearTimers]);
+
+  // TTS 재생 중 마이크 일시 정지/재개
+  const pauseForTTS = useCallback(() => {
+    if (!pauseWhenTTSPlaying) return;
+    isPausedForTTSRef.current = true;
+    setIsPausedForTTS(true);
+    
+    if (recognitionRef.current && isListeningRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch (e) {}
+      recognitionRef.current = null; // Clear ref so resumeFromTTS can restart
+    }
+  }, [pauseWhenTTSPlaying]);
+
+  const resumeFromTTS = useCallback(() => {
+    if (!pauseWhenTTSPlaying) return;
+    isPausedForTTSRef.current = false;
+    setIsPausedForTTS(false);
+    
+    // 음성 인식이 활성 상태였다면 재시작
+    if (isListeningRef.current && !recognitionRef.current) {
+      // @ts-ignore
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return;
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = lang;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setError(null);
+      };
+
+      recognition.onresult = handleRecognitionResult;
+
+      recognition.onerror = (event: any) => {
+        if (event.error === 'no-speech' || event.error === 'aborted') {
+          // 무시
+        } else if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+          setError("마이크 권한이 필요합니다.");
+          stopListening();
+        }
+      };
+
+      recognition.onend = () => {
+        if (isListeningRef.current && !isPausedForTTSRef.current) {
+          try {
+            recognition.start();
+          } catch (e) {}
+        }
+      };
+
+      recognitionRef.current = recognition;
+
+      try {
+        recognition.start();
+      } catch (e) {}
+    }
+  }, [pauseWhenTTSPlaying, lang, stopListening]);
+
+  const handleRecognitionResult = useCallback((event: any) => {
+    // TTS 재생 중이면 입력 무시 (에코 캔슬링)
+    if (isPausedForTTSRef.current) return;
+
+    let interimTranscript = '';
+    let finalTranscript = '';
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i];
+      if (result.isFinal) {
+        const text = result[0].transcript;
+        // 중복 방지: 이전 final result와 동일하면 무시
+        if (text !== lastFinalResultRef.current) {
+          finalTranscript += text;
+          lastFinalResultRef.current = text;
+        }
+      } else {
+        interimTranscript += result[0].transcript;
+      }
+    }
+
+    if (finalTranscript) {
+      // 정지 단어 감지
+      if (checkStopWords(finalTranscript)) {
+        if (onStopWordDetectedRef.current) {
+          onStopWordDetectedRef.current();
+        }
+        // 정지 단어가 감지되면 해당 텍스트를 전송하지 않고 무시
+        accumulatedTranscriptRef.current = '';
+        setTranscript('');
+        clearTimers();
+        return;
+      }
+
+      accumulatedTranscriptRef.current += finalTranscript;
+      setTranscript(accumulatedTranscriptRef.current);
+      if (onResultRef.current) {
+        onResultRef.current(accumulatedTranscriptRef.current);
+      }
+      startAutoSendTimer();
+    } else if (interimTranscript) {
+      // 정지 단어 실시간 감지
+      if (checkStopWords(interimTranscript)) {
+        if (onStopWordDetectedRef.current) {
+          onStopWordDetectedRef.current();
+        }
+      }
+      
+      const displayText = accumulatedTranscriptRef.current + interimTranscript;
+      setTranscript(displayText);
+      if (onResultRef.current) {
+        onResultRef.current(displayText);
+      }
+      clearTimers();
+    }
+  }, [checkStopWords, clearTimers, startAutoSendTimer]);
 
   const startListening = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -131,8 +271,11 @@ export const useSpeechRecognition = ({
 
     clearTimers();
     accumulatedTranscriptRef.current = '';
+    lastFinalResultRef.current = '';
     setTranscript('');
     setError(null);
+    isPausedForTTSRef.current = false;
+    setIsPausedForTTS(false);
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
@@ -146,35 +289,7 @@ export const useSpeechRecognition = ({
       setError(null);
     };
 
-    recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) {
-          finalTranscript += result[0].transcript;
-        } else {
-          interimTranscript += result[0].transcript;
-        }
-      }
-
-      if (finalTranscript) {
-        accumulatedTranscriptRef.current += finalTranscript;
-        setTranscript(accumulatedTranscriptRef.current);
-        if (onResultRef.current) {
-          onResultRef.current(accumulatedTranscriptRef.current);
-        }
-        startAutoSendTimer();
-      } else if (interimTranscript) {
-        const displayText = accumulatedTranscriptRef.current + interimTranscript;
-        setTranscript(displayText);
-        if (onResultRef.current) {
-          onResultRef.current(displayText);
-        }
-        clearTimers();
-      }
-    };
+    recognition.onresult = handleRecognitionResult;
 
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event.error);
@@ -192,7 +307,7 @@ export const useSpeechRecognition = ({
     };
 
     recognition.onend = () => {
-      if (isListeningRef.current) {
+      if (isListeningRef.current && !isPausedForTTSRef.current) {
         try {
           recognition.start();
         } catch (e) {
@@ -213,7 +328,7 @@ export const useSpeechRecognition = ({
       isListeningRef.current = false;
       setIsListening(false);
     }
-  }, [lang, clearTimers, startAutoSendTimer, stopListening]);
+  }, [lang, clearTimers, handleRecognitionResult, stopListening]);
 
   const cancelAutoSend = useCallback(() => {
     clearTimers();
@@ -236,6 +351,9 @@ export const useSpeechRecognition = ({
     startListening, 
     stopListening, 
     cancelAutoSend,
+    pauseForTTS,
+    resumeFromTTS,
+    isPausedForTTS,
     error, 
     hasSupport,
     countdown,
