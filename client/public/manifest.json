@@ -1,0 +1,26 @@
+{
+  "name": "MAZI Service",
+  "short_name": "MAZI",
+  "description": "AI 음성 비서 - 날씨, 뉴스, 요리, 건강, 영어 학습 등 다양한 서비스 제공",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#06b6d4",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "lifestyle"],
+  "lang": "ko-KR"
+}

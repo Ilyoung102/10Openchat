@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
 
     <meta property="og:title" content="MAZI Service" />
     <meta property="og:description" content="AI 음성 비서 - 날씨, 뉴스, 요리, 건강, 영어 학습 등 다양한 서비스 제공" />
@@ -14,6 +14,17 @@
     <meta name="twitter:description" content="AI 음성 비서 - 날씨, 뉴스, 요리, 건강, 영어 학습 등 다양한 서비스 제공" />
     <meta name="twitter:image" content="https://replit.com/public/images/opengraph.png" />
 
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#06b6d4" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MAZI" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="MAZI Service" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,5 +33,18 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('SW registered:', registration.scope);
+            })
+            .catch((error) => {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
