@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX, MoreVertical, Trash2, Edit2, ArrowUp, Pin, MessageSquare, Download, Upload, Save, X, ExternalLink } from 'lucide-react';
+import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX, MoreVertical, Trash2, Edit2, ArrowUp, Pin, MessageSquare, Download, Upload, Save, X, ExternalLink, Radio } from 'lucide-react';
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.41";
+const APP_VERSION = "v1.42";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -52,6 +52,9 @@ export default function Home() {
   const [isTTSPlaying, setIsTTSPlaying] = useState(false);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [loadingAudioMessageId, setLoadingAudioMessageId] = useState<string | null>(null);
+
+  // Wake Word State
+  const [wakeWordEnabled, setWakeWordEnabled] = useState(false);
 
   // TTS toggle handler - immediately stop audio when toggled off
   const handleTTSToggle = () => {
@@ -766,6 +769,19 @@ export default function Home() {
         <div className="p-4 border-t border-white/5">
           <div className="flex gap-2">
             <button 
+                onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
+                className={cn(
+                    "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border relative",
+                    wakeWordEnabled 
+                        ? "bg-green-500/20 text-green-400 border-green-500/40 shadow-[0_0_10px_rgba(34,197,94,0.2)]" 
+                        : "text-gray-400 border-white/20 bg-white/5 hover:bg-white/10"
+                )}
+                title={wakeWordEnabled ? "웨이크 워드 끄기" : "웨이크 워드 켜기 ('마지야')"}
+                data-testid="button-wake-word-toggle"
+            >
+                <Radio size={18} />
+            </button>
+            <button 
                 onClick={handleTTSToggle}
                 className={cn(
                     "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border",
@@ -801,6 +817,17 @@ export default function Home() {
             <span className="font-bold text-xl text-white">MAZI Service <span className="text-primary text-sm font-mono">{APP_VERSION}</span></span>
           </button>
           <div className="flex items-center gap-2">
+             <button 
+                onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
+                className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    wakeWordEnabled ? "text-green-400" : "text-gray-400"
+                )}
+                title={wakeWordEnabled ? "웨이크 워드 끄기" : "웨이크 워드 켜기 ('마지야')"}
+                data-testid="button-mobile-wake-word-toggle"
+             >
+                 <Radio size={20} />
+             </button>
              <button 
                 onClick={handleTTSToggle}
                 className={cn(
@@ -931,6 +958,8 @@ export default function Home() {
               isLoading={isLoading}
               isTTSPlaying={isTTSPlaying}
               onStopWordDetected={handleStopWordDetected}
+              wakeWordEnabled={wakeWordEnabled}
+              onWakeWordEnabledChange={setWakeWordEnabled}
             />
           </div>
         </div>

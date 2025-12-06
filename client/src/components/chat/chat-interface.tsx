@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Mic, StopCircle, Sparkles, Paperclip, X } from 'lucide-react';
+import { Send, Mic, StopCircle, Sparkles, Paperclip, X, Radio } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
+import { useWakeWord } from '@/hooks/use-wake-word';
 import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
@@ -9,9 +10,18 @@ interface ChatInputProps {
   isLoading: boolean;
   isTTSPlaying?: boolean;
   onStopWordDetected?: () => void;
+  wakeWordEnabled?: boolean;
+  onWakeWordEnabledChange?: (enabled: boolean) => void;
 }
 
-export const ChatInput = ({ onSend, isLoading, isTTSPlaying = false, onStopWordDetected }: ChatInputProps) => {
+export const ChatInput = ({ 
+  onSend, 
+  isLoading, 
+  isTTSPlaying = false, 
+  onStopWordDetected,
+  wakeWordEnabled = false,
+  onWakeWordEnabledChange
+}: ChatInputProps) => {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const onSendRef = useRef(onSend);
@@ -47,6 +57,19 @@ export const ChatInput = ({ onSend, isLoading, isTTSPlaying = false, onStopWordD
     lang: 'ko-KR',
     autoSendDelayMs: 1500,
     pauseWhenTTSPlaying: true
+  });
+
+  const handleWakeWordDetected = useCallback(() => {
+    if (!isListening && !isLoadingRef.current) {
+      setInput('');
+      startListening();
+    }
+  }, [isListening, startListening]);
+
+  const { isWakeListening, hasSupport: wakeHasSupport } = useWakeWord({
+    onWakeWordDetected: handleWakeWordDetected,
+    enabled: wakeWordEnabled && !isListening && !isTTSPlaying,
+    lang: 'ko-KR'
   });
 
   // TTS 재생 상태에 따라 마이크 일시 정지/재개
@@ -190,6 +213,28 @@ export const ChatInput = ({ onSend, isLoading, isTTSPlaying = false, onStopWordD
         
         <div className="relative flex items-end gap-2 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-3 shadow-2xl">
           
+          {/* Wake Word Toggle */}
+          {wakeHasSupport && onWakeWordEnabledChange && (
+            <button 
+              onClick={() => onWakeWordEnabledChange(!wakeWordEnabled)}
+              className={cn(
+                "p-2 rounded-lg transition-all duration-300 relative",
+                wakeWordEnabled
+                  ? isWakeListening
+                    ? "text-green-400 bg-green-500/20"
+                    : "text-green-400 bg-green-500/10"
+                  : "text-gray-400 hover:text-white hover:bg-white/10"
+              )}
+              title={wakeWordEnabled ? "웨이크 워드 끄기" : "웨이크 워드 켜기 ('마지야')"}
+              data-testid="button-wake-word"
+            >
+              <Radio size={20} />
+              {wakeWordEnabled && isWakeListening && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              )}
+            </button>
+          )}
+
           {/* Attachments (Visual only for now) */}
           <button 
             className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
