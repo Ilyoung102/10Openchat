@@ -68,31 +68,33 @@ export const streamOpenAIResponse = async (
     if (done) break;
 
     buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || "";
+    
+    // SSE format uses \n\n as separator
+    const events = buffer.split("\n\n");
+    buffer = events.pop() || "";
 
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      if (trimmedLine.startsWith("data: ")) {
-        const jsonStr = trimmedLine.slice(6).trim();
-        if (!jsonStr || jsonStr === "[DONE]") continue;
-        
-        try {
-          const data = JSON.parse(jsonStr);
+    for (const event of events) {
+      const lines = event.split("\n");
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith("data: ")) {
+          const jsonStr = trimmedLine.slice(6).trim();
+          if (!jsonStr || jsonStr === "[DONE]") continue;
           
-          if (data.type === "content") {
-            onChunk(data.content);
-          } else if (data.type === "searching" && onSearching) {
-            onSearching(data.query);
-          } else if (data.type === "error") {
-            throw new Error(data.error);
-          }
-        } catch (e) {
-          if (e instanceof SyntaxError) {
-            console.warn("JSON parse warning:", jsonStr);
+          try {
+            const data = JSON.parse(jsonStr);
+            
+            if (data.type === "content") {
+              onChunk(data.content);
+            } else if (data.type === "searching" && onSearching) {
+              onSearching(data.query);
+            } else if (data.type === "error") {
+              console.error("Stream error:", data.error);
+            }
+          } catch (e) {
+            // Silently ignore JSON parse errors for incomplete chunks
             continue;
           }
-          throw e;
         }
       }
     }
