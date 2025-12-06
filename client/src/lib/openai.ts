@@ -72,9 +72,13 @@ export const streamOpenAIResponse = async (
     buffer = lines.pop() || "";
 
     for (const line of lines) {
-      if (line.startsWith("data: ")) {
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith("data: ")) {
+        const jsonStr = trimmedLine.slice(6).trim();
+        if (!jsonStr || jsonStr === "[DONE]") continue;
+        
         try {
-          const data = JSON.parse(line.slice(6));
+          const data = JSON.parse(jsonStr);
           
           if (data.type === "content") {
             onChunk(data.content);
@@ -85,6 +89,7 @@ export const streamOpenAIResponse = async (
           }
         } catch (e) {
           if (e instanceof SyntaxError) {
+            console.warn("JSON parse warning:", jsonStr);
             continue;
           }
           throw e;
