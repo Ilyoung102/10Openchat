@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.24";
+const APP_VERSION = "v1.25";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -400,6 +400,7 @@ export default function Home() {
       case 'health': return <Heart size={16} />;
       case 'life': return <Lightbulb size={16} />;
       case 'english': return <BookOpen size={16} />;
+      case 'travel_guide': return <Activity size={16} />;
       default: return <Sparkles size={16} />;
     }
   };
