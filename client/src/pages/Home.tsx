@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.39";
+const APP_VERSION = "v1.40";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -51,6 +51,7 @@ export default function Home() {
   const isTTSActiveRef = useRef(isTTSActive);
   const [isTTSPlaying, setIsTTSPlaying] = useState(false);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+  const [loadingAudioMessageId, setLoadingAudioMessageId] = useState<string | null>(null);
 
   // TTS toggle handler - immediately stop audio when toggled off
   const handleTTSToggle = () => {
@@ -391,11 +392,14 @@ export default function Home() {
     if (!text) return;
     try {
       audioPlayer.stop();
-      setPlayingMessageId(messageId || null);
+      setLoadingAudioMessageId(messageId || null);
       const audioBuffer = await generateSpeech(text);
+      setLoadingAudioMessageId(null);
+      setPlayingMessageId(messageId || null);
       audioPlayer.play(audioBuffer);
     } catch (e) {
       console.error("Manual TTS failed", e);
+      setLoadingAudioMessageId(null);
       setPlayingMessageId(null);
     }
   };
@@ -853,6 +857,7 @@ export default function Home() {
                   onPlayAudio={(text) => handlePlayAudio(text, msg.id)}
                   onStopAudio={handleStopAudio}
                   isCurrentlyPlaying={playingMessageId === msg.id && isTTSPlaying}
+                  isLoadingAudio={loadingAudioMessageId === msg.id}
                 />
               ))}
               

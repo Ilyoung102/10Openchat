@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { motion } from 'framer-motion';
-import { User, Bot, Copy, Check, Volume2, VolumeX, FileText, Printer } from 'lucide-react';
+import { User, Bot, Copy, Check, Volume2, VolumeX, FileText, Printer, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MessageBubbleProps {
@@ -14,6 +14,7 @@ interface MessageBubbleProps {
   onPlayAudio?: (text: string) => void;
   onStopAudio?: () => void;
   isCurrentlyPlaying?: boolean;
+  isLoadingAudio?: boolean;
 }
 
 export const MessageBubble = ({ 
@@ -23,7 +24,8 @@ export const MessageBubble = ({
   isError, 
   onPlayAudio,
   onStopAudio,
-  isCurrentlyPlaying = false
+  isCurrentlyPlaying = false,
+  isLoadingAudio = false
 }: MessageBubbleProps) => {
   const isUser = role === 'user';
   const [copied, setCopied] = useState(false);
@@ -225,17 +227,28 @@ export const MessageBubble = ({
               {onPlayAudio && (
                 <button 
                   onClick={handlePlayStop}
+                  disabled={isLoadingAudio}
                   className={cn(
                     "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all ml-auto",
-                    isCurrentlyPlaying 
-                      ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
-                      : "bg-primary/20 text-primary hover:bg-primary/30"
+                    isLoadingAudio
+                      ? "bg-yellow-500/20 text-yellow-400 cursor-wait"
+                      : isCurrentlyPlaying 
+                        ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+                        : "bg-primary/20 text-primary hover:bg-primary/30"
                   )}
-                  title={isCurrentlyPlaying ? "정지" : "음성 재생"}
+                  title={isLoadingAudio ? "준비 중..." : isCurrentlyPlaying ? "정지" : "음성 재생"}
                   data-testid="button-play-audio"
                 >
-                  {isCurrentlyPlaying ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                  <span className="hidden sm:inline">{isCurrentlyPlaying ? '정지' : '재생'}</span>
+                  {isLoadingAudio ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : isCurrentlyPlaying ? (
+                    <VolumeX size={14} />
+                  ) : (
+                    <Volume2 size={14} />
+                  )}
+                  <span className="hidden sm:inline">
+                    {isLoadingAudio ? '준비 중' : isCurrentlyPlaying ? '정지' : '재생'}
+                  </span>
                 </button>
               )}
             </div>
