@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX, MoreVertical, Trash2, Edit2, ArrowUp, Pin, MessageSquare, Download, Upload, Save, X } from 'lucide-react';
+import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX, MoreVertical, Trash2, Edit2, ArrowUp, Pin, MessageSquare, Download, Upload, Save, X, ExternalLink } from 'lucide-react';
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.34";
+const APP_VERSION = "v1.35";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -377,7 +377,11 @@ export default function Home() {
   };
 
   const handleServiceItemClick = (item: ServiceItem) => {
-    handleSend(item.prompt, item.label);
+    if (item.link) {
+      window.open(item.link, '_blank', 'noopener,noreferrer');
+    } else {
+      handleSend(item.prompt, item.label);
+    }
     if (window.innerWidth < 768) {
         setIsSidebarOpen(false);
     }
@@ -401,6 +405,8 @@ export default function Home() {
       case 'life': return <Lightbulb size={16} />;
       case 'english': return <BookOpen size={16} />;
       case 'travel_guide': return <Activity size={16} />;
+      case 'multi_enter': return <Sparkles size={16} />;
+      case 'ott_links': return <ExternalLink size={16} />;
       default: return <Sparkles size={16} />;
     }
   };
