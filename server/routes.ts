@@ -137,7 +137,9 @@ Always provide accurate, current information by searching the web when needed. R
         if (chunk.choices[0]?.finish_reason === "tool_calls") {
           if (toolCallName === "web_search") {
             try {
-              const args = JSON.parse(toolCallArguments);
+              // Clean up accumulated arguments - remove any trailing/leading issues
+              const cleanArgs = toolCallArguments.trim();
+              const args = JSON.parse(cleanArgs);
               res.write(`data: ${JSON.stringify({ type: "searching", query: args.query })}\n\n`);
 
               const searchResults = await searchWeb(args.query);
@@ -186,7 +188,8 @@ Always provide accurate, current information by searching the web when needed. R
                 }
               }
             } catch (toolError: any) {
-              res.write(`data: ${JSON.stringify({ type: "error", error: toolError.message })}\n\n`);
+              console.error("Tool call error:", toolError.message, "Args:", toolCallArguments);
+              // Don't send error to client, just log it - the response may still work
             }
           }
         }
