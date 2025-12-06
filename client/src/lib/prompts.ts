@@ -39,24 +39,6 @@ export const SERVICE_DATA: ServiceCategory[] = [
     ]
   },
   {
-    id: 'travel_guide',
-    label: '여행 가이드',
-    items: [
-      { id: 'day_trip', icon: '🌅', label: '당일코스', prompt: '지친 일상에서 벗어나 하루 만에 즐길 수 있는 국내 당일 여행 코스들을 소개합니다. 인기 명소와 함께 특별한 경험을 할 수 있는 국내 일정을 추천해 주세요' + TRAVEL_INSTRUCTION },
-      { id: 'weekend', icon: '🗓️', label: '주말여행', prompt: '주말 동안 짧고 굵게 떠날 수 있는 국내 여행지 베스트를 소개합니다. 가족, 친구 또는 혼자서도 즐길 수 있는 다양한 국내 주말 여행 코스를 이전과 다르게 안내해 주세요' + TRAVEL_INSTRUCTION },
-      { id: 'onenight', icon: '🏕️', label: '1박 2일', prompt: '하룻밤을 넘기며 여유롭게 즐길 수 있는 1박 2일 여행 코스를 소개합니다. 여행지의 매력을 충분히 느낄 수 있도록 알차게 구성된 국내 일정을 이전과 다르게 추천해 주세요' + TRAVEL_INSTRUCTION },
-      { id: 'twonight', icon: '🧳', label: '2박 3일', prompt: '더욱 깊이 있는 여행을 원하신다면 2박 3일 여행 코스를 고려해 보세요. 다양한 활동과 새로운 경험을 통해 여행지를 충분히 만끽할 수 있는 일정을 이전과 달리 제공해 주세요' + TRAVEL_INSTRUCTION },
-      { id: 'theme', icon: '🎨', label: '테마 여행', prompt: '취미나 관심사에 맞춘 테마 여행 코스를 소개합니다. 예술, 음식, 전시회, 자연 등 다양한 테마별로 특별한 여행지를 추천해드리고 관련 체험 활동도 이전과 다르게 안내주세요' + TRAVEL_INSTRUCTION },
-      { id: 'trekking', icon: '🥾', label: '트레킹', prompt: '자연 속에서 힐링할 수 있는 트레킹 코스를 안내합니다. 각 코스의 난이도, 소요 시간별로 최고의 트레킹 명소들을 이전과 다르게 소개해 주세요' + TRAVEL_INSTRUCTION },
-      { id: 'overseas', icon: '✈️', label: '해외여행', prompt: '꼭 가봐야 할 해외 여행지를 추천합니다. 시즌별 인기 국가와 바로 떠나기 좋은 해외 명소들을 다양한 요소를 고려하여 이전과 다르게 추천해 주세요' + TRAVEL_INSTRUCTION },
-      { id: 'overseas_attractions', icon: '🗽', label: '해외 명소', prompt: '세계 각국에 있는 명소를 이전과 다르면서 랜덤하게 7개만 선정해서 설명을 좀 길게 7줄이상으로 풍성하게 설명 소개해 주세요' + TRAVEL_INSTRUCTION },
-      { id: 'lodging', icon: '🏨', label: '숙박&준비물', prompt: '성공적인 여행을 위해서는 숙박이 중요합니다. 합리적인 가격에 좋은 숙소를 예약할 수 있는 팁이나 여행 시 꼭 챙겨가야 할 준비물 목록과, 여행지에 따라 필요한 추가 준비물을 이전과 다르게 상세히 잊어버리기 쉬운것도 안내해 주세요' + TRAVEL_INSTRUCTION },
-      { id: 'attractions', icon: '🏛️', label: '관광 명소', prompt: '국내외 여행지에서 꼭 가봐야 할 관광 명소 리스트를 제공합니다. 다채로운 문화적 경험을 위한 정보를 이전과 다르게 안내해 주세요.' + TRAVEL_INSTRUCTION },
-      { id: 'safety_info', icon: '⚠️', label: '안전 정보', prompt: '안전한 여행을 위한 중요 정보를 제공합니다. 여행지별 안전 수칙과 주의사항을 이전과 다르게 상세히 안내해 주세요.' + TRAVEL_INSTRUCTION },
-      { id: 'food_travel', icon: '🍜', label: '여행 먹거리', prompt: '여행지에서 꼭 먹어봐야 할 현지 음식을 소개합니다. 특별한 맛과 분위기를 즐길 수 있는 맛집 리스트도 이전다르게 제공 해 주세요' + TRAVEL_INSTRUCTION },
-    ]
-  },
-  {
     id: 'cooking',
     label: '요리 배우기',
     items: [
@@ -108,6 +90,24 @@ export const SERVICE_DATA: ServiceCategory[] = [
       { id: 'app', icon: '📱', label: '앱 활용', prompt: '앱 활용 Tip을 이전과 다른 2개씩 제공 해 주세요.' + HEALTH_LIFE_INSTRUCTION },
       { id: 'safety', icon: '🚨', label: '안전 비상', prompt: '안전 비상 Tip을 이전과 다른 2개씩 제공 해 주세요.' + HEALTH_LIFE_INSTRUCTION },
       { id: 'camping', icon: '⛺', label: '캠핑 야외', prompt: '캠핑 할때 Tip을 이전과 다른 2개씩 제공 해 주세요.' + HEALTH_LIFE_INSTRUCTION },
+    ]
+  },
+  {
+    id: 'travel_guide',
+    label: '여행 가이드',
+    items: [
+      { id: 'day_trip', icon: '🌅', label: '당일코스', prompt: '지친 일상에서 벗어나 하루 만에 즐길 수 있는 국내 당일 여행 코스들을 소개합니다. 인기 명소와 함께 특별한 경험을 할 수 있는 국내 일정을 추천해 주세요' + TRAVEL_INSTRUCTION },
+      { id: 'weekend', icon: '🗓️', label: '주말여행', prompt: '주말 동안 짧고 굵게 떠날 수 있는 국내 여행지 베스트를 소개합니다. 가족, 친구 또는 혼자서도 즐길 수 있는 다양한 국내 주말 여행 코스를 이전과 다르게 안내해 주세요' + TRAVEL_INSTRUCTION },
+      { id: 'onenight', icon: '🏕️', label: '1박 2일', prompt: '하룻밤을 넘기며 여유롭게 즐길 수 있는 1박 2일 여행 코스를 소개합니다. 여행지의 매력을 충분히 느낄 수 있도록 알차게 구성된 국내 일정을 이전과 다르게 추천해 주세요' + TRAVEL_INSTRUCTION },
+      { id: 'twonight', icon: '🧳', label: '2박 3일', prompt: '더욱 깊이 있는 여행을 원하신다면 2박 3일 여행 코스를 고려해 보세요. 다양한 활동과 새로운 경험을 통해 여행지를 충분히 만끽할 수 있는 일정을 이전과 달리 제공해 주세요' + TRAVEL_INSTRUCTION },
+      { id: 'theme', icon: '🎨', label: '테마 여행', prompt: '취미나 관심사에 맞춘 테마 여행 코스를 소개합니다. 예술, 음식, 전시회, 자연 등 다양한 테마별로 특별한 여행지를 추천해드리고 관련 체험 활동도 이전과 다르게 안내주세요' + TRAVEL_INSTRUCTION },
+      { id: 'trekking', icon: '🥾', label: '트레킹', prompt: '자연 속에서 힐링할 수 있는 트레킹 코스를 안내합니다. 각 코스의 난이도, 소요 시간별로 최고의 트레킹 명소들을 이전과 다르게 소개해 주세요' + TRAVEL_INSTRUCTION },
+      { id: 'overseas', icon: '✈️', label: '해외여행', prompt: '꼭 가봐야 할 해외 여행지를 추천합니다. 시즌별 인기 국가와 바로 떠나기 좋은 해외 명소들을 다양한 요소를 고려하여 이전과 다르게 추천해 주세요' + TRAVEL_INSTRUCTION },
+      { id: 'world_attractions', icon: '🗽', label: '세계명소', prompt: '전 세계 국가들에 있는 유명 명소를 이전과 다르게 랜덤하게 5개 선별해서 5줄이상으로 블러그 형식으로 소개 설명 해 주세요' + TRAVEL_INSTRUCTION },
+      { id: 'lodging', icon: '🏨', label: '숙박&준비물', prompt: '성공적인 여행을 위해서는 숙박이 중요합니다. 합리적인 가격에 좋은 숙소를 예약할 수 있는 팁이나 여행 시 꼭 챙겨가야 할 준비물 목록과, 여행지에 따라 필요한 추가 준비물을 이전과 다르게 상세히 잊어버리기 쉬운것도 안내해 주세요' + TRAVEL_INSTRUCTION },
+      { id: 'attractions', icon: '🏛️', label: '관광 명소', prompt: '국내외 여행지에서 꼭 가봐야 할 관광 명소 리스트를 제공합니다. 다채로운 문화적 경험을 위한 정보를 이전과 다르게 안내해 주세요.' + TRAVEL_INSTRUCTION },
+      { id: 'safety_info', icon: '⚠️', label: '안전 정보', prompt: '안전한 여행을 위한 중요 정보를 제공합니다. 여행지별 안전 수칙과 주의사항을 이전과 다르게 상세히 안내해 주세요.' + TRAVEL_INSTRUCTION },
+      { id: 'food_travel', icon: '🍜', label: '여행 먹거리', prompt: '여행지에서 꼭 먹어봐야 할 현지 음식을 소개합니다. 특별한 맛과 분위기를 즐길 수 있는 맛집 리스트도 이전다르게 제공 해 주세요' + TRAVEL_INSTRUCTION },
     ]
   },
   {
