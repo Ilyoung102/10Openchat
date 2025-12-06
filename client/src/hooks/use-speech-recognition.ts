@@ -252,7 +252,7 @@ export const useSpeechRecognition = ({
     }
   }, [checkStopWords, clearTimers, startAutoSendTimer]);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback((initialText?: string) => {
     if (typeof window === 'undefined') return;
     
     // @ts-ignore
@@ -270,12 +270,20 @@ export const useSpeechRecognition = ({
     }
 
     clearTimers();
-    accumulatedTranscriptRef.current = '';
+    accumulatedTranscriptRef.current = initialText || '';
     lastFinalResultRef.current = '';
-    setTranscript('');
+    setTranscript(initialText || '');
     setError(null);
     isPausedForTTSRef.current = false;
     setIsPausedForTTS(false);
+    
+    if (initialText && onResultRef.current) {
+      onResultRef.current(initialText);
+    }
+    
+    if (initialText) {
+      startAutoSendTimer();
+    }
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
@@ -328,11 +336,27 @@ export const useSpeechRecognition = ({
       isListeningRef.current = false;
       setIsListening(false);
     }
-  }, [lang, clearTimers, handleRecognitionResult, stopListening]);
+  }, [lang, clearTimers, handleRecognitionResult, stopListening, startAutoSendTimer]);
 
   const cancelAutoSend = useCallback(() => {
     clearTimers();
   }, [clearTimers]);
+
+  const seedTranscript = useCallback((text: string) => {
+    if (!text || text.length < 2) return;
+    
+    const currentText = accumulatedTranscriptRef.current;
+    if (!currentText) {
+      accumulatedTranscriptRef.current = text;
+    } else {
+      accumulatedTranscriptRef.current = text + ' ' + currentText;
+    }
+    setTranscript(accumulatedTranscriptRef.current);
+    if (onResultRef.current) {
+      onResultRef.current(accumulatedTranscriptRef.current);
+    }
+    startAutoSendTimer();
+  }, [startAutoSendTimer]);
 
   useEffect(() => {
     return () => {
@@ -351,6 +375,7 @@ export const useSpeechRecognition = ({
     startListening, 
     stopListening, 
     cancelAutoSend,
+    seedTranscript,
     pauseForTTS,
     resumeFromTTS,
     isPausedForTTS,

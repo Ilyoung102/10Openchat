@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useWakeWord } from '@/hooks/use-wake-word';
 import { cn } from '@/lib/utils';
+import { playWakeSound } from '@/lib/sounds';
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -34,12 +35,20 @@ export const ChatInput = ({
     isLoadingRef.current = isLoading;
   }, [onSend, isLoading]);
 
+  const handleSpeechEnd = useCallback((text: string) => {
+    if (text.trim() && !isLoadingRef.current) {
+      onSendRef.current(text);
+      setInput('');
+    }
+  }, []);
+
   const { 
     isListening, 
     transcript, 
     startListening, 
     stopListening, 
     cancelAutoSend,
+    seedTranscript,
     pauseForTTS,
     resumeFromTTS,
     isPausedForTTS,
@@ -49,25 +58,27 @@ export const ChatInput = ({
     isCountingDown
   } = useSpeechRecognition({
     onResult: (text) => setInput(text),
-    onSpeechEnd: useCallback((text: string) => {
-      if (text.trim() && !isLoadingRef.current) {
-        onSendRef.current(text);
-        setInput('');
-      }
-    }, []),
+    onSpeechEnd: handleSpeechEnd,
     onStopWordDetected: onStopWordDetected,
     lang: 'ko-KR',
     autoSendDelayMs: 1500,
     pauseWhenTTSPlaying: true
   });
 
-  const handleWakeWordDetected = useCallback(() => {
-    if (!isListening && !isLoadingRef.current) {
-      setInput('');
-      startListening();
-      onWakeWordTriggered?.();
+  const handleWakeWordDetected = useCallback((remainingText?: string) => {
+    if (isLoadingRef.current) return;
+    
+    playWakeSound();
+    onWakeWordTriggered?.();
+    
+    const textToSeed = remainingText && remainingText.length >= 2 ? remainingText : undefined;
+    
+    if (!isListening) {
+      startListening(textToSeed);
+    } else if (textToSeed) {
+      seedTranscript(textToSeed);
     }
-  }, [isListening, startListening, onWakeWordTriggered]);
+  }, [isListening, startListening, seedTranscript, onWakeWordTriggered]);
 
   const { isWakeListening, hasSupport: wakeHasSupport } = useWakeWord({
     onWakeWordDetected: handleWakeWordDetected,

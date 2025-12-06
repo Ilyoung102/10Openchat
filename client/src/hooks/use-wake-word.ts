@@ -3,7 +3,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 const WAKE_WORDS = ['마지야', '마지아', '마지', 'mazi', 'majiya'];
 
 interface UseWakeWordProps {
-  onWakeWordDetected?: () => void;
+  onWakeWordDetected?: (remainingText?: string) => void;
   enabled?: boolean;
   lang?: string;
 }
@@ -42,9 +42,17 @@ export const useWakeWord = ({
     }
   }, []);
 
-  const checkWakeWord = useCallback((text: string): boolean => {
+  const checkWakeWord = useCallback((text: string): { found: boolean; remainingText?: string } => {
     const lowerText = text.toLowerCase().trim();
-    return WAKE_WORDS.some(word => lowerText.includes(word.toLowerCase()));
+    for (const word of WAKE_WORDS) {
+      const lowerWord = word.toLowerCase();
+      const index = lowerText.indexOf(lowerWord);
+      if (index !== -1) {
+        const remaining = text.trim().substring(index + word.length).trim();
+        return { found: true, remainingText: remaining || undefined };
+      }
+    }
+    return { found: false };
   }, []);
 
   const stopWakeListening = useCallback(() => {
@@ -89,9 +97,10 @@ export const useWakeWord = ({
         const result = event.results[i];
         const text = result[0].transcript;
         
-        if (checkWakeWord(text)) {
+        const wakeResult = checkWakeWord(text);
+        if (wakeResult.found && result.isFinal) {
           if (onWakeWordDetectedRef.current) {
-            onWakeWordDetectedRef.current();
+            onWakeWordDetectedRef.current(wakeResult.remainingText);
           }
           return;
         }
