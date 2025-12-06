@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.38";
+const APP_VERSION = "v1.39";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -50,6 +50,7 @@ export default function Home() {
   const [isTTSActive, setIsTTSActive] = useState(false);
   const isTTSActiveRef = useRef(isTTSActive);
   const [isTTSPlaying, setIsTTSPlaying] = useState(false);
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
 
   // TTS toggle handler - immediately stop audio when toggled off
   const handleTTSToggle = () => {
@@ -68,6 +69,9 @@ export default function Home() {
   useEffect(() => {
     audioPlayer.setOnPlayStateChange((playing) => {
       setIsTTSPlaying(playing);
+      if (!playing) {
+        setPlayingMessageId(null);
+      }
     });
     return () => {
       audioPlayer.setOnPlayStateChange(null);
@@ -383,15 +387,22 @@ export default function Home() {
     }
   };
 
-  const handlePlayAudio = async (text: string) => {
+  const handlePlayAudio = async (text: string, messageId?: string) => {
     if (!text) return;
     try {
       audioPlayer.stop();
+      setPlayingMessageId(messageId || null);
       const audioBuffer = await generateSpeech(text);
       audioPlayer.play(audioBuffer);
     } catch (e) {
       console.error("Manual TTS failed", e);
+      setPlayingMessageId(null);
     }
+  };
+
+  const handleStopAudio = () => {
+    audioPlayer.stop();
+    setPlayingMessageId(null);
   };
 
   const handleServiceItemClick = (item: ServiceItem) => {
@@ -839,7 +850,9 @@ export default function Home() {
                   text={msg.text}
                   timestamp={msg.timestamp}
                   isError={msg.isError}
-                  onPlayAudio={handlePlayAudio}
+                  onPlayAudio={(text) => handlePlayAudio(text, msg.id)}
+                  onStopAudio={handleStopAudio}
+                  isCurrentlyPlaying={playingMessageId === msg.id && isTTSPlaying}
                 />
               ))}
               

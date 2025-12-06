@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { motion } from 'framer-motion';
-import { User, Bot, Copy, Check, Volume2, Loader2 } from 'lucide-react';
+import { User, Bot, Copy, Check, Volume2, VolumeX, FileText, Printer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MessageBubbleProps {
@@ -12,12 +12,21 @@ interface MessageBubbleProps {
   timestamp: number;
   isError?: boolean;
   onPlayAudio?: (text: string) => void;
+  onStopAudio?: () => void;
+  isCurrentlyPlaying?: boolean;
 }
 
-export const MessageBubble = ({ role, text, timestamp, isError, onPlayAudio }: MessageBubbleProps) => {
+export const MessageBubble = ({ 
+  role, 
+  text, 
+  timestamp, 
+  isError, 
+  onPlayAudio,
+  onStopAudio,
+  isCurrentlyPlaying = false
+}: MessageBubbleProps) => {
   const isUser = role === 'user';
   const [copied, setCopied] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(text);
@@ -25,11 +34,74 @@ export const MessageBubble = ({ role, text, timestamp, isError, onPlayAudio }: M
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handlePlay = () => {
-    if (onPlayAudio) {
-      setIsPlaying(true);
-      onPlayAudio(text);
-      setTimeout(() => setIsPlaying(false), 3000); // Reset icon after delay (placeholder for real state)
+  const handleSaveTxt = () => {
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `message_${new Date(timestamp).toISOString().slice(0,10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>MAZI Service - 메시지</title>
+          <style>
+            body { 
+              font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
+              padding: 40px; 
+              line-height: 1.8;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            h1 { 
+              font-size: 18px; 
+              color: #333; 
+              border-bottom: 2px solid #06b6d4; 
+              padding-bottom: 10px;
+              margin-bottom: 20px;
+            }
+            .content { 
+              font-size: 14px; 
+              white-space: pre-wrap; 
+              color: #444;
+            }
+            .timestamp { 
+              font-size: 12px; 
+              color: #888; 
+              margin-top: 20px;
+              text-align: right;
+            }
+            @media print {
+              body { padding: 20px; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>🤖 MAZI Service</h1>
+          <div class="content">${text.replace(/\n/g, '<br>')}</div>
+          <div class="timestamp">${new Date(timestamp).toLocaleString()}</div>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const handlePlayStop = () => {
+    if (isCurrentlyPlaying) {
+      onStopAudio?.();
+    } else {
+      onPlayAudio?.(text);
     }
   };
 
@@ -65,32 +137,9 @@ export const MessageBubble = ({ role, text, timestamp, isError, onPlayAudio }: M
               ? "bg-red-500/10 border-red-500/30 text-red-200 rounded-tl-none"
               : "bg-secondary/40 border-white/10 text-gray-100 rounded-tl-none"
         )}>
-          {/* Header (Time, Copy, Audio) */}
+          {/* Header (Time only) */}
           <div className="flex justify-between items-center mb-2 opacity-50 text-xs">
             <span>{new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-               {!isUser && onPlayAudio && (
-                <button 
-                  onClick={handlePlay} 
-                  className="hover:text-white text-gray-400 transition-colors"
-                  title="Read Aloud"
-                  data-testid="button-play-audio"
-                >
-                  {isPlaying ? <Loader2 size={12} className="animate-spin" /> : <Volume2 size={12} />}
-                </button>
-              )}
-              {!isUser && (
-                <button 
-                  onClick={handleCopy} 
-                  className="hover:text-white text-gray-400 transition-colors"
-                  title="Copy"
-                  data-testid="button-copy-message"
-                >
-                  {copied ? <Check size={12} /> : <Copy size={12} />}
-                </button>
-              )}
-            </div>
           </div>
 
           {/* Markdown Content */}
@@ -130,6 +179,67 @@ export const MessageBubble = ({ role, text, timestamp, isError, onPlayAudio }: M
               {text}
             </ReactMarkdown>
           </div>
+
+          {/* Action Icons Bar - Only for AI messages */}
+          {!isUser && text && !isError && (
+            <div className="flex items-center gap-1 mt-4 pt-3 border-t border-white/10">
+              {/* Copy */}
+              <button 
+                onClick={handleCopy}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all",
+                  copied 
+                    ? "bg-green-500/20 text-green-400" 
+                    : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                )}
+                title="복사"
+                data-testid="button-copy-message"
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+                <span className="hidden sm:inline">{copied ? '복사됨' : '복사'}</span>
+              </button>
+
+              {/* Save TXT */}
+              <button 
+                onClick={handleSaveTxt}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                title="TXT 저장"
+                data-testid="button-save-txt"
+              >
+                <FileText size={14} />
+                <span className="hidden sm:inline">TXT</span>
+              </button>
+
+              {/* Print PDF */}
+              <button 
+                onClick={handlePrint}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                title="인쇄/PDF"
+                data-testid="button-print-pdf"
+              >
+                <Printer size={14} />
+                <span className="hidden sm:inline">인쇄</span>
+              </button>
+
+              {/* Play/Stop Audio */}
+              {onPlayAudio && (
+                <button 
+                  onClick={handlePlayStop}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all ml-auto",
+                    isCurrentlyPlaying 
+                      ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+                      : "bg-primary/20 text-primary hover:bg-primary/30"
+                  )}
+                  title={isCurrentlyPlaying ? "정지" : "음성 재생"}
+                  data-testid="button-play-audio"
+                >
+                  {isCurrentlyPlaying ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                  <span className="hidden sm:inline">{isCurrentlyPlaying ? '정지' : '재생'}</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
