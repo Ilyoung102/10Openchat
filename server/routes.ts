@@ -87,15 +87,36 @@ export async function registerRoutes(
       res.setHeader("Connection", "keep-alive");
       res.setHeader("X-Accel-Buffering", "no");
 
+      const currentDate = new Date().toLocaleDateString('ko-KR', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long'
+      });
+      
       const systemMessage: ChatMessage = {
         role: "system",
         content: `You are MAZI Service, a futuristic, advanced AI companion with real-time web search capabilities. You are helpful, precise, and have a slight cyberpunk personality.
 
+**현재 날짜: ${currentDate}**
+
 **중요: 모든 답변은 반드시 한국어로 작성해야 합니다.**
 
-When users ask about current events, news, weather, stock prices, or anything that requires up-to-date information, use the web_search function to get real-time data.
+**웹 검색 필수 사용 조건:**
+다음과 같은 질문에는 반드시 web_search 함수를 사용하세요:
+- 현재 날씨, 뉴스, 시사 정보
+- 인기 음악, K-POP 차트, 최신 노래 순위
+- 유명인, 연예인, 아이돌 관련 최신 정보
+- 영화, 드라마, TV 프로그램 정보
+- 스포츠 경기 결과, 선수 정보
+- 주식, 환율, 경제 정보
+- 맛집, 여행지, 장소 추천
+- 제품 가격, 쇼핑 정보
+- 기술, IT, 앱, 게임 관련 정보
+- 2023년 이후의 모든 사건이나 정보
 
-Always provide accurate, current information by searching the web when needed. Remember to always respond in Korean.`,
+당신의 학습 데이터는 2023년까지만 있으므로, 현재 정보가 필요한 모든 질문에는 웹 검색을 사용하세요.
+확실하지 않으면 항상 웹 검색을 먼저 하세요.`,
       };
 
       const allMessages = [systemMessage, ...messages];
