@@ -108,24 +108,27 @@ Always provide accurate, current information by searching the web when needed. R
         stream: true,
       });
 
-      let toolCallId = "";
-      let toolCallName = "";
-      let toolCallArguments = "";
-      let collectedMessages: any[] = [];
+      // Track multiple parallel tool calls by index
+      const toolCalls: Map<number, { id: string; name: string; arguments: string }> = new Map();
 
       for await (const chunk of response) {
         const delta = chunk.choices[0]?.delta;
 
         if (delta?.tool_calls) {
           for (const toolCall of delta.tool_calls) {
+            const index = toolCall.index;
+            if (!toolCalls.has(index)) {
+              toolCalls.set(index, { id: "", name: "", arguments: "" });
+            }
+            const tc = toolCalls.get(index)!;
             if (toolCall.id) {
-              toolCallId = toolCall.id;
+              tc.id = toolCall.id;
             }
             if (toolCall.function?.name) {
-              toolCallName = toolCall.function.name;
+              tc.name = toolCall.function.name;
             }
             if (toolCall.function?.arguments) {
-              toolCallArguments += toolCall.function.arguments;
+              tc.arguments += toolCall.function.arguments;
             }
           }
         }
@@ -135,44 +138,51 @@ Always provide accurate, current information by searching the web when needed. R
         }
 
         if (chunk.choices[0]?.finish_reason === "tool_calls") {
-          if (toolCallName === "web_search") {
+          // Process all tool calls
+          const webSearchCalls = Array.from(toolCalls.values()).filter(tc => tc.name === "web_search");
+          
+          if (webSearchCalls.length > 0) {
             try {
-              // Clean up accumulated arguments - remove any trailing/leading issues
-              const cleanArgs = toolCallArguments.trim();
-              const args = JSON.parse(cleanArgs);
-              res.write(`data: ${JSON.stringify({ type: "searching", query: args.query })}\n\n`);
+              // Execute all web searches in parallel
+              const searchPromises = webSearchCalls.map(async (tc) => {
+                const args = JSON.parse(tc.arguments.trim());
+                res.write(`data: ${JSON.stringify({ type: "searching", query: args.query })}\n\n`);
+                const results = await searchWeb(args.query);
+                return { tc, results, args };
+              });
 
-              const searchResults = await searchWeb(args.query);
+              const searchResults = await Promise.all(searchPromises);
 
-              const toolResultMessage = {
+              // Build tool calls array and tool result messages
+              const assistantToolCalls = searchResults.map(({ tc }) => ({
+                id: tc.id,
+                type: "function" as const,
+                function: {
+                  name: tc.name,
+                  arguments: tc.arguments,
+                },
+              }));
+
+              const toolResultMessages = searchResults.map(({ tc, results }) => ({
                 role: "tool" as const,
-                tool_call_id: toolCallId,
+                tool_call_id: tc.id,
                 content: JSON.stringify({
-                  answer: searchResults.answer,
-                  sources: searchResults.results.map((r) => ({
+                  answer: results.answer,
+                  sources: results.results.map((r) => ({
                     title: r.title,
                     url: r.url,
                     snippet: r.content,
                   })),
                 }),
-              };
+              }));
 
               const continuationMessages = [
                 ...allMessages,
                 {
                   role: "assistant" as const,
-                  tool_calls: [
-                    {
-                      id: toolCallId,
-                      type: "function" as const,
-                      function: {
-                        name: toolCallName,
-                        arguments: toolCallArguments,
-                      },
-                    },
-                  ],
+                  tool_calls: assistantToolCalls,
                 },
-                toolResultMessage,
+                ...toolResultMessages,
               ];
 
               const continuationStream = await openai.chat.completions.create({
@@ -188,8 +198,7 @@ Always provide accurate, current information by searching the web when needed. R
                 }
               }
             } catch (toolError: any) {
-              console.error("Tool call error:", toolError.message, "Args:", toolCallArguments);
-              // Don't send error to client, just log it - the response may still work
+              console.error("Tool call error:", toolError.message);
             }
           }
         }
