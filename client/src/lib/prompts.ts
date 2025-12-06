@@ -49,7 +49,7 @@ export const SERVICE_DATA: ServiceCategory[] = [
       { id: 'theme', icon: '🎨', label: '테마 여행', prompt: '취미나 관심사에 맞춘 테마 여행 코스를 소개합니다. 예술, 음식, 전시회, 자연 등 다양한 테마별로 특별한 여행지를 추천해드리고 관련 체험 활동도 이전과 다르게 안내주세요' + TRAVEL_INSTRUCTION },
       { id: 'trekking', icon: '🥾', label: '트레킹', prompt: '자연 속에서 힐링할 수 있는 트레킹 코스를 안내합니다. 각 코스의 난이도, 소요 시간별로 최고의 트레킹 명소들을 이전과 다르게 소개해 주세요' + TRAVEL_INSTRUCTION },
       { id: 'overseas', icon: '✈️', label: '해외여행', prompt: '꼭 가봐야 할 해외 여행지를 추천합니다. 시즌별 인기 국가와 바로 떠나기 좋은 해외 명소들을 다양한 요소를 고려하여 이전과 다르게 추천해 주세요' + TRAVEL_INSTRUCTION },
-      { id: 'overseas_attractions', icon: '🗽', label: '해외 명소', prompt: '세계 각 국가별 5개이상 명소를 이전과 다르게 선별 해 다섯줄 이상으로 이해도 높이고 잘 알수 있게 설명도 해 주세요.' + TRAVEL_INSTRUCTION },
+      { id: 'overseas_attractions', icon: '🗽', label: '해외 명소', prompt: '세계 각국에 있는 명소를 이전과 다르면서 랜덤하게 7개만 선정해서 설명을 좀 길게 7줄이상으로 풍성하게 설명 소개해 주세요' + TRAVEL_INSTRUCTION },
       { id: 'lodging', icon: '🏨', label: '숙박&준비물', prompt: '성공적인 여행을 위해서는 숙박이 중요합니다. 합리적인 가격에 좋은 숙소를 예약할 수 있는 팁이나 여행 시 꼭 챙겨가야 할 준비물 목록과, 여행지에 따라 필요한 추가 준비물을 이전과 다르게 상세히 잊어버리기 쉬운것도 안내해 주세요' + TRAVEL_INSTRUCTION },
       { id: 'attractions', icon: '🏛️', label: '관광 명소', prompt: '국내외 여행지에서 꼭 가봐야 할 관광 명소 리스트를 제공합니다. 다채로운 문화적 경험을 위한 정보를 이전과 다르게 안내해 주세요.' + TRAVEL_INSTRUCTION },
       { id: 'safety_info', icon: '⚠️', label: '안전 정보', prompt: '안전한 여행을 위한 중요 정보를 제공합니다. 여행지별 안전 수칙과 주의사항을 이전과 다르게 상세히 안내해 주세요.' + TRAVEL_INSTRUCTION },
