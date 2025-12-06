@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.40";
+const APP_VERSION = "v1.41";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -580,32 +580,41 @@ export default function Home() {
           {/* Services Menu - Categories Only */}
           <div className="space-y-0.5 border-b border-white/5 pb-3">
             <p className="px-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">Functions</p>
-            {SERVICE_DATA.map((category) => (
-              <button 
-                key={category.id}
-                onClick={() => setActiveCategory(activeCategory === category.id ? null : category.id)}
-                className={cn(
-                  "w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-all group",
-                  activeCategory === category.id 
-                    ? "bg-primary/20 text-primary" 
-                    : "text-gray-300 hover:bg-white/5 hover:text-white"
+            {SERVICE_DATA.map((category, index) => (
+              <React.Fragment key={category.id}>
+                {/* Separator after travel_guide (before multi_enter) */}
+                {category.id === 'multi_enter' && (
+                  <div className="my-1.5 mx-2 border-t border-white/10" />
                 )}
-                data-testid={`button-category-${category.id}`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className={cn(
-                    "transition-colors",
-                    activeCategory === category.id ? "text-primary" : "text-gray-500 group-hover:text-primary"
-                  )}>
-                    {getCategoryIcon(category.id)}
-                  </span>
-                  <span className="text-xs">{category.label}</span>
-                </div>
-                <ChevronRight size={12} className={cn(
-                  "transition-transform",
-                  activeCategory === category.id ? "rotate-90 text-primary" : "text-gray-600 group-hover:text-white"
-                )} />
-              </button>
+                {/* Separator after ott_links (before english) */}
+                {category.id === 'english' && (
+                  <div className="my-1.5 mx-2 border-t border-white/10" />
+                )}
+                <button 
+                  onClick={() => setActiveCategory(activeCategory === category.id ? null : category.id)}
+                  className={cn(
+                    "w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-all group",
+                    activeCategory === category.id 
+                      ? "bg-primary/20 text-primary" 
+                      : "text-gray-300 hover:bg-white/5 hover:text-white"
+                  )}
+                  data-testid={`button-category-${category.id}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "transition-colors",
+                      activeCategory === category.id ? "text-primary" : "text-gray-500 group-hover:text-primary"
+                    )}>
+                      {getCategoryIcon(category.id)}
+                    </span>
+                    <span className="text-xs">{category.label}</span>
+                  </div>
+                  <ChevronRight size={12} className={cn(
+                    "transition-transform",
+                    activeCategory === category.id ? "rotate-90 text-primary" : "text-gray-600 group-hover:text-white"
+                  )} />
+                </button>
+              </React.Fragment>
             ))}
           </div>
 
@@ -858,6 +867,7 @@ export default function Home() {
                   onStopAudio={handleStopAudio}
                   isCurrentlyPlaying={playingMessageId === msg.id && isTTSPlaying}
                   isLoadingAudio={loadingAudioMessageId === msg.id}
+                  isAnyAudioBusy={isTTSPlaying || loadingAudioMessageId !== null}
                 />
               ))}
               

@@ -15,6 +15,7 @@ interface MessageBubbleProps {
   onStopAudio?: () => void;
   isCurrentlyPlaying?: boolean;
   isLoadingAudio?: boolean;
+  isAnyAudioBusy?: boolean;
 }
 
 export const MessageBubble = ({ 
@@ -25,7 +26,8 @@ export const MessageBubble = ({
   onPlayAudio,
   onStopAudio,
   isCurrentlyPlaying = false,
-  isLoadingAudio = false
+  isLoadingAudio = false,
+  isAnyAudioBusy = false
 }: MessageBubbleProps) => {
   const isUser = role === 'user';
   const [copied, setCopied] = useState(false);
@@ -227,16 +229,18 @@ export const MessageBubble = ({
               {onPlayAudio && (
                 <button 
                   onClick={handlePlayStop}
-                  disabled={isLoadingAudio}
+                  disabled={isLoadingAudio || (isAnyAudioBusy && !isCurrentlyPlaying)}
                   className={cn(
                     "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all ml-auto",
                     isLoadingAudio
                       ? "bg-yellow-500/20 text-yellow-400 cursor-wait"
                       : isCurrentlyPlaying 
                         ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
-                        : "bg-primary/20 text-primary hover:bg-primary/30"
+                        : isAnyAudioBusy
+                          ? "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+                          : "bg-primary/20 text-primary hover:bg-primary/30"
                   )}
-                  title={isLoadingAudio ? "준비 중..." : isCurrentlyPlaying ? "정지" : "음성 재생"}
+                  title={isLoadingAudio ? "준비 중..." : isCurrentlyPlaying ? "정지" : isAnyAudioBusy ? "다른 음성 재생 중" : "음성 재생"}
                   data-testid="button-play-audio"
                 >
                   {isLoadingAudio ? (

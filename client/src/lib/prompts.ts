@@ -132,6 +132,24 @@ export const SERVICE_DATA: ServiceCategory[] = [
     ]
   },
   {
+    id: 'ott_links',
+    label: 'OTT 음원',
+    items: [
+      { id: 'netflix', icon: '🎬', label: 'Netflix', prompt: '', link: 'https://www.netflix.com/' },
+      { id: 'coupang_play', icon: '🛒', label: '쿠팡플레이', prompt: '', link: 'https://www.coupangplay.com/' },
+      { id: 'wavve', icon: '📺', label: 'Wavve', prompt: '', link: 'https://www.wavve.com/' },
+      { id: 'tving', icon: '📱', label: 'TVING', prompt: '', link: 'https://www.tving.com/' },
+      { id: 'disney_plus', icon: '🏰', label: 'Disney+', prompt: '', link: 'https://www.disneyplus.com/' },
+      { id: 'melon', icon: '🍈', label: 'Melon', prompt: '', link: 'https://www.melon.com/' },
+      { id: 'genie', icon: '🧞', label: '지니뮤직', prompt: '', link: 'https://www.genie.co.kr/' },
+      { id: 'spotify', icon: '💚', label: 'Spotify', prompt: '', link: 'https://www.spotify.com/' },
+      { id: 'youtube_music', icon: '🎵', label: 'YouTube Music', prompt: '', link: 'https://music.youtube.com/' },
+      { id: 'youtube', icon: '▶️', label: 'YouTube', prompt: '', link: 'https://www.youtube.com/' },
+      { id: 'naver_tv', icon: '🟢', label: '네이버TV', prompt: '', link: 'https://tv.naver.com/' },
+      { id: 'kakao_tv', icon: '💬', label: '카카오TV', prompt: '', link: 'https://tv.kakao.com/' },
+    ]
+  },
+  {
     id: 'english',
     label: '영어 학습',
     items: [
@@ -153,24 +171,6 @@ export const SERVICE_DATA: ServiceCategory[] = [
       { id: 'beg_word', icon: '🔤', label: '초급 단어', prompt: '초급~중급에 해당하는 영어 단어를 10개씩 보여주며 발음을 주고 번역 해 주세요.' + ENGLISH_INSTRUCTION },
       { id: 'int_word', icon: '📚', label: '중급 단어', prompt: '중급~고급에 해당하는 영어 단어를 10개씩 보여주며 발음을 주고 번역 해 주세요.' + ENGLISH_INSTRUCTION },
       { id: 'adv_word', icon: '🎓', label: '고급 단어', prompt: '고급~전문에 해당하는 영어 단어를 10개씩 보여주며 발음을 주고 번역 해 주세요.' + ENGLISH_INSTRUCTION },
-    ]
-  },
-  {
-    id: 'ott_links',
-    label: 'OTT 음원',
-    items: [
-      { id: 'netflix', icon: '🎬', label: 'Netflix', prompt: '', link: 'https://www.netflix.com/' },
-      { id: 'coupang_play', icon: '🛒', label: '쿠팡플레이', prompt: '', link: 'https://www.coupangplay.com/' },
-      { id: 'wavve', icon: '📺', label: 'Wavve', prompt: '', link: 'https://www.wavve.com/' },
-      { id: 'tving', icon: '📱', label: 'TVING', prompt: '', link: 'https://www.tving.com/' },
-      { id: 'disney_plus', icon: '🏰', label: 'Disney+', prompt: '', link: 'https://www.disneyplus.com/' },
-      { id: 'melon', icon: '🍈', label: 'Melon', prompt: '', link: 'https://www.melon.com/' },
-      { id: 'genie', icon: '🧞', label: '지니뮤직', prompt: '', link: 'https://www.genie.co.kr/' },
-      { id: 'spotify', icon: '💚', label: 'Spotify', prompt: '', link: 'https://www.spotify.com/' },
-      { id: 'youtube_music', icon: '🎵', label: 'YouTube Music', prompt: '', link: 'https://music.youtube.com/' },
-      { id: 'youtube', icon: '▶️', label: 'YouTube', prompt: '', link: 'https://www.youtube.com/' },
-      { id: 'naver_tv', icon: '🟢', label: '네이버TV', prompt: '', link: 'https://tv.naver.com/' },
-      { id: 'kakao_tv', icon: '💬', label: '카카오TV', prompt: '', link: 'https://tv.kakao.com/' },
     ]
   }
 ];
