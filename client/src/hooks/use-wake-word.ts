@@ -1,6 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-const WAKE_WORDS = ['마지야', '마지아', '마지', 'mazi', 'majiya'];
+const WAKE_WORDS = [
+  '마지야', '마지아', '마지', '맞이야', '맞이', '마찌야', '마찌', 
+  '마즈야', '마즈', '마쥐야', '마쥐', '마지요', '마지얌',
+  'mazi', 'majiya', 'maji', 'maziya'
+];
 
 interface UseWakeWordProps {
   onWakeWordDetected?: (remainingText?: string) => void;
@@ -20,6 +24,7 @@ export const useWakeWord = ({
   const isWakeListeningRef = useRef(false);
   const onWakeWordDetectedRef = useRef(onWakeWordDetected);
   const enabledRef = useRef(enabled);
+  const lastDetectedTimeRef = useRef(0);
 
   useEffect(() => {
     onWakeWordDetectedRef.current = onWakeWordDetected;
@@ -44,12 +49,25 @@ export const useWakeWord = ({
 
   const checkWakeWord = useCallback((text: string): { found: boolean; remainingText?: string } => {
     const lowerText = text.toLowerCase().trim();
+    const normalizedText = lowerText
+      .replace(/\s+/g, '')
+      .replace(/[.,!?]/g, '');
+    
     for (const word of WAKE_WORDS) {
       const lowerWord = word.toLowerCase();
-      const index = lowerText.indexOf(lowerWord);
+      const normalizedWord = lowerWord.replace(/\s+/g, '');
+      
+      const index = normalizedText.indexOf(normalizedWord);
       if (index !== -1) {
-        const remaining = text.trim().substring(index + word.length).trim();
+        const originalIndex = lowerText.indexOf(lowerWord);
+        const remaining = originalIndex !== -1 
+          ? text.trim().substring(originalIndex + word.length).trim()
+          : '';
         return { found: true, remainingText: remaining || undefined };
+      }
+      
+      if (normalizedText.includes(normalizedWord)) {
+        return { found: true, remainingText: undefined };
       }
     }
     return { found: false };
@@ -85,7 +103,7 @@ export const useWakeWord = ({
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = lang;
-    recognition.maxAlternatives = 1;
+    recognition.maxAlternatives = 5;
 
     recognition.onstart = () => {
       isWakeListeningRef.current = true;
@@ -93,23 +111,35 @@ export const useWakeWord = ({
     };
 
     recognition.onresult = (event: any) => {
+      const now = Date.now();
+      if (now - lastDetectedTimeRef.current < 2000) {
+        return;
+      }
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
-        const text = result[0].transcript;
         
-        const wakeResult = checkWakeWord(text);
-        if (wakeResult.found && result.isFinal) {
-          if (onWakeWordDetectedRef.current) {
-            onWakeWordDetectedRef.current(wakeResult.remainingText);
+        for (let j = 0; j < result.length; j++) {
+          const text = result[j].transcript;
+          const confidence = result[j].confidence;
+          
+          const wakeResult = checkWakeWord(text);
+          if (wakeResult.found) {
+            if (result.isFinal || confidence > 0.5) {
+              lastDetectedTimeRef.current = now;
+              if (onWakeWordDetectedRef.current) {
+                onWakeWordDetectedRef.current(wakeResult.remainingText);
+              }
+              return;
+            }
           }
-          return;
         }
       }
     };
 
     recognition.onerror = (event: any) => {
       if (event.error === 'no-speech' || event.error === 'aborted') {
-        // Ignore
+        // Ignore - normal behavior
       } else if (event.error === 'not-allowed' || event.error === 'permission-denied') {
         stopWakeListening();
       }
@@ -123,7 +153,7 @@ export const useWakeWord = ({
               recognition.start();
             } catch (e) {}
           }
-        }, 100);
+        }, 50);
       }
     };
 
