@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX, MoreVertical, Trash2, Edit2, ArrowUp, Pin, MessageSquare, Download, Upload, Save, X, ExternalLink, Radio } from 'lucide-react';
+import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, CloudSun, Utensils, Heart, Lightbulb, BookOpen, ArrowLeft, Volume2, VolumeX, MoreVertical, Trash2, Edit2, ArrowUp, Pin, MessageSquare, Download, Upload, Save, X, ExternalLink, Radio, MessageCircle } from 'lucide-react';
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.45";
+const APP_VERSION = "v1.46";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -55,6 +55,24 @@ export default function Home() {
 
   // Wake Word State
   const [wakeWordEnabled, setWakeWordEnabled] = useState(false);
+
+  // Conversation Mode State
+  const [conversationMode, setConversationMode] = useState(false);
+  const conversationModeRef = useRef(conversationMode);
+  
+  useEffect(() => {
+    conversationModeRef.current = conversationMode;
+  }, [conversationMode]);
+
+  // Conversation mode toggle handler - enables TTS when turning on
+  const handleConversationModeToggle = () => {
+    const newValue = !conversationMode;
+    setConversationMode(newValue);
+    if (newValue && !isTTSActive) {
+      setIsTTSActive(true);
+      isTTSActiveRef.current = true;
+    }
+  };
 
   // Wake word triggered - enable TTS for voice response
   const handleWakeWordTriggered = () => {
@@ -370,7 +388,8 @@ export default function Home() {
               ? { ...msg, text: `🔍 웹 검색 중: "${query}"...`, isSearching: true }
               : msg
           ));
-        }
+        },
+        conversationModeRef.current
       );
 
       // Auto-play audio if enabled (use ref to get latest state)
@@ -773,6 +792,22 @@ export default function Home() {
         </div>
 
         <div className="p-4 border-t border-white/5">
+          <div className="flex gap-2 mb-2">
+            <button 
+                onClick={handleConversationModeToggle}
+                className={cn(
+                    "flex items-center justify-center gap-2 p-3 rounded-xl transition-colors flex-1 border relative",
+                    conversationMode 
+                        ? "bg-purple-500/20 text-purple-400 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.2)]" 
+                        : "text-gray-400 border-white/20 bg-white/5 hover:bg-white/10"
+                )}
+                title={conversationMode ? "대화 모드 끄기" : "대화 모드 켜기"}
+                data-testid="button-conversation-mode-toggle"
+            >
+                <MessageCircle size={18} />
+                <span className="text-xs">대화</span>
+            </button>
+          </div>
           <div className="flex gap-2">
             <button 
                 onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
@@ -824,6 +859,20 @@ export default function Home() {
           </button>
           <div className="flex items-center gap-2">
              <button 
+                onClick={handleConversationModeToggle}
+                className={cn(
+                    "p-2 rounded-lg transition-colors relative",
+                    conversationMode ? "text-purple-400 bg-purple-500/20" : "text-gray-400"
+                )}
+                title={conversationMode ? "대화 모드 끄기" : "대화 모드 켜기"}
+                data-testid="button-mobile-conversation-mode"
+             >
+                 <MessageCircle size={20} />
+                 {conversationMode && (
+                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                 )}
+             </button>
+             <button 
                 onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
                 className={cn(
                     "p-2 rounded-lg transition-colors",
@@ -858,8 +907,24 @@ export default function Home() {
            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
         </div>
 
-        {/* Toggle Sidebar Button (Desktop) */}
-        <div className="absolute top-4 right-4 z-20 hidden md:block">
+        {/* Toggle Sidebar Button & Conversation Mode (Desktop) */}
+        <div className="absolute top-4 right-4 z-20 hidden md:flex items-center gap-2">
+          <button 
+            onClick={handleConversationModeToggle}
+            className={cn(
+                "p-2 rounded-lg transition-colors border relative",
+                conversationMode 
+                    ? "text-purple-400 bg-purple-500/20 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.3)]" 
+                    : "text-gray-400 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur border-white/5"
+            )}
+            title={conversationMode ? "대화 모드 끄기" : "대화 모드 켜기"}
+            data-testid="button-desktop-conversation-mode"
+          >
+            <MessageCircle size={20} />
+            {conversationMode && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+            )}
+          </button>
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 text-gray-400 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur rounded-lg transition-colors border border-white/5"

@@ -73,9 +73,10 @@ export async function registerRoutes(
   
   app.post("/api/chat/stream", async (req, res) => {
     try {
-      const { messages, model = "gpt-4o" } = req.body as {
+      const { messages, model = "gpt-4o", conversationMode = false } = req.body as {
         messages: ChatMessage[];
         model?: string;
+        conversationMode?: boolean;
       };
 
       if (!messages || !Array.isArray(messages)) {
@@ -94,9 +95,7 @@ export async function registerRoutes(
         weekday: 'long'
       });
       
-      const systemMessage: ChatMessage = {
-        role: "system",
-        content: `You are MAZI Service, a futuristic, advanced AI companion with real-time web search capabilities. You are helpful, precise, and have a slight cyberpunk personality.
+      let systemContent = `You are MAZI Service, a futuristic, advanced AI companion with real-time web search capabilities. You are helpful, precise, and have a slight cyberpunk personality.
 
 **현재 날짜: ${currentDate}**
 
@@ -116,7 +115,28 @@ export async function registerRoutes(
 - 2023년 이후의 모든 사건이나 정보
 
 당신의 학습 데이터는 2023년까지만 있으므로, 현재 정보가 필요한 모든 질문에는 웹 검색을 사용하세요.
-확실하지 않으면 항상 웹 검색을 먼저 하세요.`,
+확실하지 않으면 항상 웹 검색을 먼저 하세요.`;
+
+      if (conversationMode) {
+        systemContent += `
+
+**[대화 모드 활성화]**
+현재 대화 모드입니다. 음성으로 자연스럽게 대화하는 것처럼 응답하세요.
+
+**대화 모드 규칙:**
+1. **응답 길이 제한**: 반드시 100자(한글 기준) 이내로 간결하게 답변하세요. 사람은 한 번에 100자 이상을 말하지 않습니다.
+2. **자연스러운 말투**: 친근하고 자연스러운 구어체로 답변하세요.
+3. **핵심만 전달**: 불필요한 설명 없이 핵심 정보만 전달하세요.
+4. **긴 자료 요청 시**: 사용자가 목록, 상세 설명, 코드, 긴 정보를 요청하면: "대화 모드에서는 간단한 답변만 드릴 수 있어요. 자세한 내용은 대화 모드를 끄고 다시 물어봐 주세요!" 라고 안내하세요.
+
+예시:
+- "오늘 날씨 어때?" → "서울 오늘 맑고 15도예요. 가벼운 겉옷 챙기세요!"
+- "점심 뭐 먹을까?" → "김치찌개 어때요? 든든하고 맛있잖아요."`;
+      }
+
+      const systemMessage: ChatMessage = {
+        role: "system",
+        content: systemContent,
       };
 
       const allMessages = [systemMessage, ...messages];

@@ -26,7 +26,8 @@ export const streamOpenAIResponse = async (
   history: ChatMessage[],
   newMessage: string,
   onChunk: (text: string) => void,
-  onSearching?: (query: string) => void
+  onSearching?: (query: string) => void,
+  conversationMode?: boolean
 ) => {
   const model = getModel();
 
@@ -47,7 +48,7 @@ export const streamOpenAIResponse = async (
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ messages, model }),
+    body: JSON.stringify({ messages, model, conversationMode }),
   });
 
   if (!response.ok) {
