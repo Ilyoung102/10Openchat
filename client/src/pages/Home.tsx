@@ -64,13 +64,18 @@ export default function Home() {
     conversationModeRef.current = conversationMode;
   }, [conversationMode]);
 
-  // Conversation mode toggle handler - enables TTS when turning on
+  // Conversation mode toggle handler - enables TTS and wake word when turning on
   const handleConversationModeToggle = () => {
     const newValue = !conversationMode;
     setConversationMode(newValue);
-    if (newValue && !isTTSActive) {
-      setIsTTSActive(true);
-      isTTSActiveRef.current = true;
+    if (newValue) {
+      if (!isTTSActive) {
+        setIsTTSActive(true);
+        isTTSActiveRef.current = true;
+      }
+      if (!wakeWordEnabled) {
+        setWakeWordEnabled(true);
+      }
     }
   };
 
