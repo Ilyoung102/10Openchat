@@ -1,28 +1,38 @@
-const audioContext = typeof window !== 'undefined' 
-  ? new (window.AudioContext || (window as any).webkitAudioContext)() 
-  : null;
+let audioContext: AudioContext | null = null;
 
-export const playWakeSound = () => {
-  if (!audioContext) return;
+const getAudioContext = () => {
+  if (typeof window === 'undefined') return null;
   
-  if (audioContext.state === 'suspended') {
-    audioContext.resume();
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  return audioContext;
+};
+
+export const playWakeSound = async () => {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  
+  if (ctx.state === 'suspended') {
+    await ctx.resume();
   }
 
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
+  const oscillator = ctx.createOscillator();
+  const gainNode = ctx.createGain();
   
   oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
+  gainNode.connect(ctx.destination);
   
-  oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
-  oscillator.frequency.setValueAtTime(1320, audioContext.currentTime + 0.05);
+  const now = ctx.currentTime;
+  
+  oscillator.frequency.setValueAtTime(880, now);
+  oscillator.frequency.setValueAtTime(1320, now + 0.05);
   
   oscillator.type = 'sine';
   
-  gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+  gainNode.gain.setValueAtTime(1.0, now);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
   
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.15);
+  oscillator.start(now);
+  oscillator.stop(now + 0.15);
 };
