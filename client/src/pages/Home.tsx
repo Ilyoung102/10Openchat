@@ -948,7 +948,7 @@ export default function Home() {
                   GOOD TIME
                 </h2>
                 <p className="text-lg md:text-xl text-gray-400 mt-4">
-                  <span className="text-[1.5em] text-white font-bold tracking-wider" style={{fontFamily: '"Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'}}>Pure fragrance</span>와 함께
+                  <span className="text-[1.95em] text-white font-bold tracking-wider" style={{fontFamily: '"Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'}}>마지</span>와 함께 하세요.
                 </p>
               </motion.div>
             </div>
