@@ -73,7 +73,7 @@ export async function registerRoutes(
   
   app.post("/api/chat/stream", async (req, res) => {
     try {
-      const { messages, model = "gpt-4o", conversationMode = false } = req.body as {
+      const { messages, model = "gpt-4o-mini", conversationMode = false } = req.body as {
         messages: ChatMessage[];
         model?: string;
         conversationMode?: boolean;
@@ -82,6 +82,11 @@ export async function registerRoutes(
       if (!messages || !Array.isArray(messages)) {
         return res.status(400).json({ error: "Messages array is required" });
       }
+
+      const MAX_HISTORY_MESSAGES = 10;
+      const limitedMessages = messages.length > MAX_HISTORY_MESSAGES 
+        ? messages.slice(-MAX_HISTORY_MESSAGES) 
+        : messages;
 
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
@@ -139,7 +144,7 @@ export async function registerRoutes(
         content: systemContent,
       };
 
-      const allMessages = [systemMessage, ...messages];
+      const allMessages = [systemMessage, ...limitedMessages];
 
       const response = await openai.chat.completions.create({
         model: model,
