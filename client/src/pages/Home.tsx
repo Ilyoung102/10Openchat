@@ -949,11 +949,21 @@ export default function Home() {
                 transition={{ duration: 0.6 }}
                 className="text-center"
               >
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                <h2 
+                  className="text-4xl md:text-5xl font-bold mb-6 tracking-tight"
+                  style={{
+                    background: 'linear-gradient(to right, #22d3ee, #a855f7, #ec4899)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    color: '#a855f7',
+                    fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif'
+                  }}
+                >
                   GOOD TIME
                 </h2>
-                <p className="text-lg md:text-xl text-gray-400 mt-4">
-                  <span className="text-[1.95em] text-white font-bold tracking-wider" style={{fontFamily: '"Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'}}>마지</span>와 함께 하세요.
+                <p className="text-lg md:text-xl text-gray-400 mt-4" style={{fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif'}}>
+                  <span className="text-[1.95em] text-white font-bold tracking-wider" style={{fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Malgun Gothic", sans-serif'}}>마지</span>와 함께 하세요.
                 </p>
               </motion.div>
             </div>
