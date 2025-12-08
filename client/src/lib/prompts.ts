@@ -16,7 +16,25 @@ export interface ServiceCategory {
 // Common Instructions
 const NO_TALK_INSTRUCTION = "\n(중요) 서론, 본론, 결론, 인사말 등 불필요한 대화체 멘트는 절대 하지 마세요. 오직 요청된 정보만 출력하세요.";
 
-const ENGLISH_INSTRUCTION = NO_TALK_INSTRUCTION + "\n(출력 형식) 영어 회화와 한국어 해석, 단어 정보만 명확하게 표시하세요. 다른 설명은 생략합니다. 각 답변에는 상황에 맞는 텍스트 아이콘(이모지)을 사용하여 포인트를 주세요.";
+const ENGLISH_INSTRUCTION = NO_TALK_INSTRUCTION + `
+(상황극 구성) 각 상황극은 4~7개의 문장으로 구성하세요. 기승전결이 자연스럽게 연결되도록 하세요:
+- 도입: 상황 시작 (인사, 질문 등)
+- 전개: 대화 진행 (정보 교환, 요청 등)
+- 클라이맥스: 핵심 대화 (문제 해결, 결정 등)
+- 마무리: 대화 종료 (감사, 작별 등)
+
+(출력 형식) 
+- **영어 문장은 반드시 볼드체(**English sentence**)로 표시**하여 돋보이게 하세요.
+- 한국어 해석은 일반 텍스트로 바로 아래에 표시하세요.
+- 핵심 단어/표현은 문장 뒤에 📝로 표시하세요.
+- 각 상황극에 맞는 이모지를 사용하세요.
+
+(예시)
+**A: Excuse me, is this seat taken?**
+실례합니다, 이 자리 비어있나요? 📝 taken: 사용 중인
+
+**B: No, please go ahead!**
+아니요, 앉으세요!`;
 
 const COOKING_INSTRUCTION = NO_TALK_INSTRUCTION + "\n(출력 형식) 요리 이름과 몇인분 기준인지(예: 2인분 기준)를 필히 명시하고, 상세 레시피를 깔끔하게 출력하세요. 제목과 주요 단계에 텍스트 아이콘(이모지)을 사용하여 시각적으로 꾸며주세요.";
 
@@ -153,21 +171,21 @@ export const SERVICE_DATA: ServiceCategory[] = [
     id: 'english',
     label: '영어 학습',
     items: [
-      { id: 'cafe', icon: '☕', label: 'Cafe', prompt: 'Cafe 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'phone', icon: '📞', label: 'Phone', prompt: 'Phone 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'travel', icon: '🧳', label: 'Travel', prompt: 'Travel 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'work', icon: '💼', label: 'Work', prompt: 'Work 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'hotel', icon: '🏨', label: 'Hotel', prompt: 'Hotel 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'airport', icon: '🛫', label: 'Airport', prompt: 'Airport 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'hospital', icon: '🏥', label: 'Hospital', prompt: 'Hospital 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'restaurant', icon: '🍴', label: 'Restaurant', prompt: 'Restaurant 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'shopping', icon: '🛒', label: 'Shopping', prompt: 'Shopping 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'business', icon: '📈', label: 'Business', prompt: 'Business 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'emergency', icon: '🆘', label: 'Emergency', prompt: 'Emergency 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'street', icon: '🚶', label: 'Street', prompt: 'Street 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'chatter', icon: '💬', label: 'Chatter', prompt: 'Chatter 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'topic', icon: '📝', label: 'Topic', prompt: 'Topic 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
-      { id: 'general', icon: '🌐', label: 'General', prompt: 'General 관련된 상황에 맞게 상황극 영어 대화를 3~6줄씩 3개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'cafe', icon: '☕', label: 'Cafe', prompt: 'Cafe 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'phone', icon: '📞', label: 'Phone', prompt: 'Phone 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'travel', icon: '🧳', label: 'Travel', prompt: 'Travel 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'work', icon: '💼', label: 'Work', prompt: 'Work 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'hotel', icon: '🏨', label: 'Hotel', prompt: 'Hotel 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'airport', icon: '🛫', label: 'Airport', prompt: 'Airport 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'hospital', icon: '🏥', label: 'Hospital', prompt: 'Hospital 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'restaurant', icon: '🍴', label: 'Restaurant', prompt: 'Restaurant 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'shopping', icon: '🛒', label: 'Shopping', prompt: 'Shopping 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'business', icon: '📈', label: 'Business', prompt: 'Business 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'emergency', icon: '🆘', label: 'Emergency', prompt: 'Emergency 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'street', icon: '🚶', label: 'Street', prompt: 'Street 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'chatter', icon: '💬', label: 'Chatter', prompt: 'Chatter 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'topic', icon: '📝', label: 'Topic', prompt: 'Topic 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
+      { id: 'general', icon: '🌐', label: 'General', prompt: 'General 관련된 상황에 맞게 상황극 영어 대화를 4~7문장으로 기승전결이 자연스럽게 연결되는 상황극 2개를 이전과 다르게 만들어 주세요.' + ENGLISH_INSTRUCTION },
       { id: 'beg_word', icon: '🔤', label: '초급 단어', prompt: '초급~중급에 해당하는 영어 단어를 10개씩 보여주며 발음을 주고 번역 해 주세요.' + ENGLISH_INSTRUCTION },
       { id: 'int_word', icon: '📚', label: '중급 단어', prompt: '중급~고급에 해당하는 영어 단어를 10개씩 보여주며 발음을 주고 번역 해 주세요.' + ENGLISH_INSTRUCTION },
       { id: 'adv_word', icon: '🎓', label: '고급 단어', prompt: '고급~전문에 해당하는 영어 단어를 10개씩 보여주며 발음을 주고 번역 해 주세요.' + ENGLISH_INSTRUCTION },
