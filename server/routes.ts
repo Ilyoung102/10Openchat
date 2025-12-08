@@ -265,18 +265,37 @@ export async function registerRoutes(
 
   app.post("/api/tts", async (req, res) => {
     try {
-      const { text, voice = "alloy" } = req.body;
+      const { text, voice = "alloy", speed = 1.0, repeatEnglish = false } = req.body;
 
       if (!text) {
         return res.status(400).json({ error: "Text is required" });
       }
 
-      const truncatedText = text.substring(0, 4096);
+      let processedText = text;
+      
+      // For English learning: extract English sentences and repeat each 3 times
+      if (repeatEnglish) {
+        // Extract English sentences (text between ** markers or starting with A:/B:)
+        const englishPattern = /\*\*([^*]+)\*\*/g;
+        const matches = [...text.matchAll(englishPattern)];
+        
+        if (matches.length > 0) {
+          // Build TTS text with only English sentences repeated 3 times each
+          const englishSentences = matches.map(m => m[1].trim());
+          processedText = englishSentences.map(sentence => {
+            // Repeat each English sentence 3 times with pause
+            return `${sentence}. ... ${sentence}. ... ${sentence}.`;
+          }).join(' ... ');
+        }
+      }
+
+      const truncatedText = processedText.substring(0, 4096);
 
       const mp3 = await openai.audio.speech.create({
         model: "tts-1",
         voice: voice as "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer",
         input: truncatedText,
+        speed: speed,
       });
 
       const buffer = Buffer.from(await mp3.arrayBuffer());

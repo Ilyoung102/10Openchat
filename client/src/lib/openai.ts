@@ -102,13 +102,21 @@ export const streamOpenAIResponse = async (
   }
 };
 
-export const generateSpeech = async (text: string): Promise<ArrayBuffer> => {
+export const generateSpeech = async (
+  text: string, 
+  options?: { repeatEnglish?: boolean; speed?: number }
+): Promise<ArrayBuffer> => {
   const response = await fetch("/api/tts", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text, voice: "alloy" }),
+    body: JSON.stringify({ 
+      text, 
+      voice: "alloy",
+      speed: options?.speed ?? 1.0,
+      repeatEnglish: options?.repeatEnglish ?? false
+    }),
   });
 
   if (!response.ok) {

@@ -426,7 +426,15 @@ export default function Home() {
     try {
       audioPlayer.stop();
       setLoadingAudioMessageId(messageId || null);
-      const audioBuffer = await generateSpeech(text);
+      
+      // Detect if this is English learning content (has bold English sentences with Korean translations)
+      const isEnglishLearning = /\*\*[A-Za-z].*\*\*/.test(text) && 
+        (text.includes('📝') || /[가-힣]{2,}/.test(text));
+      
+      const audioBuffer = await generateSpeech(text, { 
+        repeatEnglish: isEnglishLearning,
+        speed: 1.0
+      });
       setLoadingAudioMessageId(null);
       setPlayingMessageId(messageId || null);
       audioPlayer.play(audioBuffer);
