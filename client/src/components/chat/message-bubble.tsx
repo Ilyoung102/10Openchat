@@ -150,6 +150,13 @@ export const MessageBubble = ({
           <div className="prose prose-invert prose-sm max-w-none leading-relaxed">
             <ReactMarkdown
               components={{
+                strong({ children, ...props }: any) {
+                  return (
+                    <strong className="text-sky-400 font-semibold" {...props}>
+                      {children}
+                    </strong>
+                  );
+                },
                 code({ node, inline, className, children, ...props }: any) {
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline && match ? (
