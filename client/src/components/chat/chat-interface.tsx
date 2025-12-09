@@ -58,6 +58,7 @@ export const ChatInput = ({
     isCountingDown,
     isTranscribing,
     hasAudioInput,
+    debugInfo,
     mode
   } = useVoiceRecognition({
     onResult: (text: string) => setInput(text),
@@ -181,10 +182,10 @@ export const ChatInput = ({
 
       {/* Debug Panel - shows when listening */}
       {isListening && (
-        <div className="absolute -top-28 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-3 py-2 rounded-lg border border-gray-700 min-w-[200px]">
           <div>Mode: <span className="text-cyan-400">{mode}</span></div>
           <div>Audio: <span className={hasAudioInput ? "text-green-400" : "text-red-400"}>{hasAudioInput ? "감지됨" : "없음"}</span></div>
-          <div>Transcribing: <span className={isTranscribing ? "text-yellow-400" : "text-gray-400"}>{isTranscribing ? "변환중" : "대기"}</span></div>
+          <div>Status: <span className="text-yellow-400">{debugInfo || "대기"}</span></div>
           {error && <div className="text-red-400">Error: {error}</div>}
         </div>
       )}

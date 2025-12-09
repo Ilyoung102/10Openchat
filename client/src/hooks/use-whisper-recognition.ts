@@ -27,6 +27,7 @@ export const useWhisperRecognition = ({
   const [isPausedForTTS, setIsPausedForTTS] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [hasAudioInput, setHasAudioInput] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -245,6 +246,7 @@ export const useWhisperRecognition = ({
 
   const startNewRecording = useCallback(() => {
     if (!streamRef.current || !isListeningRef.current || isPausedForTTSRef.current) {
+      setDebugInfo('No stream or not listening');
       return;
     }
 
@@ -262,22 +264,30 @@ export const useWhisperRecognition = ({
           ? 'audio/webm'
           : 'audio/mp4';
       
+      setDebugInfo(`Starting: ${mimeType}`);
       mimeTypeRef.current = mimeType;
       const mediaRecorder = new MediaRecorder(streamRef.current, { mimeType });
       
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
+          setDebugInfo(`Chunks: ${chunksRef.current.length}, Size: ${event.data.size}`);
         }
       };
       
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(chunksRef.current, { type: mimeTypeRef.current });
+        const chunkCount = chunksRef.current.length;
         chunksRef.current = [];
         
         const recordingDuration = Date.now() - recordingStartTimeRef.current;
+        setDebugInfo(`Stop: ${chunkCount} chunks, ${audioBlob.size}B, ${recordingDuration}ms`);
+        
         if (recordingDuration > 500 && audioBlob.size > 0) {
+          setDebugInfo(`Sending: ${audioBlob.size}B`);
           await transcribeAudio(audioBlob);
+        } else {
+          setDebugInfo(`Skip: too short or empty`);
         }
         
         if (isListeningRef.current && !isPausedForTTSRef.current && streamRef.current && startNewRecordingRef.current) {
@@ -288,14 +298,17 @@ export const useWhisperRecognition = ({
       mediaRecorderRef.current = mediaRecorder;
       recordingStartTimeRef.current = Date.now();
       
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Request data every 1 second
+      setDebugInfo(`Recording started`);
       silenceTimerRef.current = setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          setDebugInfo(`Timer stop after 5s`);
           mediaRecorderRef.current.stop();
         }
       }, 5000);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to start recording:', e);
+      setDebugInfo(`Error: ${e.message}`);
       setError('녹음을 시작할 수 없습니다.');
     }
   }, [transcribeAudio]);
@@ -445,6 +458,7 @@ export const useWhisperRecognition = ({
     countdown,
     isCountingDown: countdown !== null && countdown > 0,
     isTranscribing,
-    hasAudioInput
+    hasAudioInput,
+    debugInfo
   };
 };
