@@ -640,7 +640,7 @@ export default function Home() {
                       ? "bg-primary/20" 
                       : "hover:bg-white/5"
                   )}
-                  style={{ color: activeCategory === category.id ? '#06b6d4' : '#d1d5db' }}
+                  style={{ color: activeCategory === category.id ? '#22d3ee' : '#06b6d4' }}
                   data-testid={`button-category-${category.id}`}
                 >
                   <div className="flex items-center gap-2">
