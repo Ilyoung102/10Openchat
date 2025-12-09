@@ -125,7 +125,7 @@ export const useSpeechRecognition = ({
       analyserRef.current = analyser;
 
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      const threshold = 20;
+      const threshold = 5;
 
       audioLevelIntervalRef.current = setInterval(() => {
         if (!analyserRef.current) return;
