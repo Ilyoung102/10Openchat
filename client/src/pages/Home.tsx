@@ -611,11 +611,11 @@ export default function Home() {
             <button 
               onClick={handleNewSession}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary/20 rounded-xl border border-primary/40 hover:bg-primary/30 transition-all group shadow-[0_0_10px_rgba(6,182,212,0.2)]"
-              style={{ color: '#06b6d4' }}
+              style={{ color: '#22c55e' }}
               data-testid="button-new-session"
             >
               <Plus size={18} />
-              <span className="font-medium text-sm" style={{ color: '#06b6d4' }}>New</span>
+              <span className="font-medium text-sm" style={{ color: '#22c55e' }}>New</span>
             </button>
           </div>
 
@@ -640,22 +640,22 @@ export default function Home() {
                       ? "bg-primary/20" 
                       : "hover:bg-white/5"
                   )}
-                  style={{ color: activeCategory === category.id ? '#22d3ee' : '#06b6d4' }}
+                  style={{ color: activeCategory === category.id ? '#4ade80' : '#22c55e' }}
                   data-testid={`button-category-${category.id}`}
                 >
                   <div className="flex items-center gap-2">
                     <span 
                       className="transition-colors"
-                      style={{ color: activeCategory === category.id ? '#06b6d4' : '#6b7280' }}
+                      style={{ color: activeCategory === category.id ? '#4ade80' : '#22c55e' }}
                     >
                       {getCategoryIcon(category.id)}
                     </span>
-                    <span className="text-xs" style={{ color: activeCategory === category.id ? '#06b6d4' : '#d1d5db' }}>{category.label}</span>
+                    <span className="text-xs" style={{ color: activeCategory === category.id ? '#4ade80' : '#22c55e' }}>{category.label}</span>
                   </div>
                   <ChevronRight size={12} className={cn(
                     "transition-transform",
                     activeCategory === category.id ? "rotate-90" : ""
-                  )} style={{ color: activeCategory === category.id ? '#06b6d4' : '#4b5563' }} />
+                  )} style={{ color: activeCategory === category.id ? '#4ade80' : '#22c55e' }} />
                 </button>
               </React.Fragment>
             ))}
@@ -816,12 +816,12 @@ export default function Home() {
                         ? "bg-purple-500/20 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.2)]" 
                         : "border-white/20 bg-white/5 hover:bg-white/10"
                 )}
-                style={{ color: conversationMode ? '#c084fc' : '#9ca3af' }}
+                style={{ color: conversationMode ? '#c084fc' : '#22c55e' }}
                 title={conversationMode ? "대화 모드 끄기" : "대화 모드 켜기"}
                 data-testid="button-conversation-mode-toggle"
             >
                 <MessageCircle size={18} />
-                <span className="text-xs" style={{ color: conversationMode ? '#c084fc' : '#9ca3af' }}>대화</span>
+                <span className="text-xs" style={{ color: conversationMode ? '#c084fc' : '#22c55e' }}>대화</span>
             </button>
           </div>
           <div className="flex gap-2">
@@ -833,7 +833,7 @@ export default function Home() {
                         ? "bg-green-500/20 border-green-500/40 shadow-[0_0_10px_rgba(34,197,94,0.2)]" 
                         : "border-white/20 bg-white/5 hover:bg-white/10"
                 )}
-                style={{ color: wakeWordEnabled ? '#4ade80' : '#9ca3af' }}
+                style={{ color: wakeWordEnabled ? '#4ade80' : '#22c55e' }}
                 title={wakeWordEnabled ? "웨이크 워드 끄기" : "웨이크 워드 켜기 ('마지야')"}
                 data-testid="button-wake-word-toggle"
             >
@@ -847,7 +847,7 @@ export default function Home() {
                         ? "bg-primary/20 border-primary/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]" 
                         : "border-white/20 bg-white/5 hover:bg-white/10"
                 )}
-                style={{ color: isTTSActive ? '#06b6d4' : '#9ca3af' }}
+                style={{ color: isTTSActive ? '#06b6d4' : '#22c55e' }}
                 data-testid="button-tts-toggle"
             >
                 {isTTSActive ? <Volume2 size={18} /> : <VolumeX size={18} />}
@@ -855,7 +855,7 @@ export default function Home() {
             <button 
                 onClick={() => setShowSettingsModal(true)}
                 className="flex items-center justify-center p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-colors flex-1 border border-white/20"
-                style={{ color: '#9ca3af' }}
+                style={{ color: '#22c55e' }}
                 data-testid="button-settings"
             >
                 <Settings size={18} />
