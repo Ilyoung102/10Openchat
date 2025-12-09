@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Mic, StopCircle, Sparkles, Paperclip, X, Radio } from 'lucide-react';
+import { Send, Mic, StopCircle, Sparkles, Paperclip, X, Radio, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVoiceRecognition } from '@/hooks/use-voice-recognition';
 import { useWakeWord } from '@/hooks/use-wake-word';
@@ -26,6 +26,12 @@ export const ChatInput = ({
   onWakeWordTriggered
 }: ChatInputProps) => {
   const [input, setInput] = useState('');
+  const [forceWhisper, setForceWhisper] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('forceWhisper') === 'true';
+    }
+    return false;
+  });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const onSendRef = useRef(onSend);
   const isLoadingRef = useRef(isLoading);
@@ -34,6 +40,10 @@ export const ChatInput = ({
     onSendRef.current = onSend;
     isLoadingRef.current = isLoading;
   }, [onSend, isLoading]);
+
+  useEffect(() => {
+    localStorage.setItem('forceWhisper', forceWhisper.toString());
+  }, [forceWhisper]);
 
   const handleSpeechEnd = useCallback((text: string) => {
     if (text.trim() && !isLoadingRef.current) {
@@ -66,7 +76,8 @@ export const ChatInput = ({
     onStopWordDetected: onStopWordDetected,
     lang: 'ko-KR',
     autoSendDelayMs: 1500,
-    pauseWhenTTSPlaying: true
+    pauseWhenTTSPlaying: true,
+    forceWhisper
   });
 
   const useWhisperFallback = mode === 'whisper';
@@ -183,7 +194,7 @@ export const ChatInput = ({
       {/* Debug Panel - shows when listening */}
       {isListening && (
         <div className="absolute -top-32 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-3 py-2 rounded-lg border border-gray-700 min-w-[200px]">
-          <div>Mode: <span className="text-cyan-400">{mode}</span></div>
+          <div>Mode: <span className="text-cyan-400">{mode}</span>{forceWhisper && <span className="text-purple-400 ml-1">(강제)</span>}</div>
           <div>Audio: <span className={hasAudioInput ? "text-green-400" : "text-red-400"}>{hasAudioInput ? "감지됨" : "없음"}</span></div>
           <div>Status: <span className="text-yellow-400">{debugInfo || "대기"}</span></div>
           {error && <div className="text-red-400">Error: {error}</div>}
@@ -278,6 +289,24 @@ export const ChatInput = ({
               )}
             </button>
           )}
+
+          {/* Force Whisper Mode Toggle - for Smart TV compatibility */}
+          <button 
+            onClick={() => setForceWhisper(!forceWhisper)}
+            className={cn(
+              "p-2 rounded-lg transition-all duration-300 relative",
+              forceWhisper
+                ? "text-purple-400 bg-purple-500/20"
+                : "text-gray-400 hover:text-white hover:bg-white/10"
+            )}
+            title={forceWhisper ? "Whisper 모드 끄기 (현재: 강제 Whisper)" : "Whisper 모드 켜기 (스마트 TV용)"}
+            data-testid="button-force-whisper"
+          >
+            <Zap size={20} />
+            {forceWhisper && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-500 rounded-full" />
+            )}
+          </button>
 
           {/* Attachments (Visual only for now) */}
           <button 
