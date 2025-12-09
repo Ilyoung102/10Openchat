@@ -171,9 +171,23 @@ export const ChatInput = ({
             <span className="text-xs font-medium">
               {isPausedForTTS ? "TTS 재생 중 (대기)" : isTranscribing ? "음성 변환 중..." : useWhisperFallback ? "녹음 중..." : "음성 인식 중..."}
             </span>
+            {/* Debug info */}
+            <span className="text-[10px] text-gray-400 ml-2">
+              [{mode}] {hasAudioInput ? "🎤" : "🔇"}
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Debug Panel - shows when listening */}
+      {isListening && (
+        <div className="absolute -top-28 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700">
+          <div>Mode: <span className="text-cyan-400">{mode}</span></div>
+          <div>Audio: <span className={hasAudioInput ? "text-green-400" : "text-red-400"}>{hasAudioInput ? "감지됨" : "없음"}</span></div>
+          <div>Transcribing: <span className={isTranscribing ? "text-yellow-400" : "text-gray-400"}>{isTranscribing ? "변환중" : "대기"}</span></div>
+          {error && <div className="text-red-400">Error: {error}</div>}
+        </div>
+      )}
 
       {/* Auto-send Countdown Indicator */}
       <AnimatePresence>
