@@ -157,10 +157,10 @@ export const ChatInput = ({
             {/* Audio Input LED - Blue blinking when mic receives audio */}
             <div 
               className={cn(
-                "w-4 h-4 rounded-full transition-all duration-75",
+                "w-5 h-5 rounded-full border-2 transition-all duration-75",
                 hasAudioInput 
-                  ? "bg-blue-400 shadow-[0_0_12px_4px_rgba(96,165,250,1)]" 
-                  : "bg-gray-700"
+                  ? "bg-cyan-400 border-cyan-300 shadow-[0_0_20px_8px_rgba(34,211,238,1),0_0_40px_16px_rgba(34,211,238,0.6)]" 
+                  : "bg-gray-600 border-gray-500"
               )}
               data-testid="led-audio-input"
             />
