@@ -334,13 +334,16 @@ export async function registerRoutes(
   });
 
   app.post("/api/transcribe", upload.single('audio'), async (req, res) => {
+    console.log('[Transcribe] Request received');
     try {
       if (!req.file) {
+        console.log('[Transcribe] No audio file in request');
         return res.status(400).json({ error: "Audio file is required" });
       }
 
       const audioBuffer = req.file.buffer;
       const mimeType = req.file.mimetype || 'audio/webm';
+      console.log(`[Transcribe] Audio received: ${audioBuffer.length} bytes, type: ${mimeType}`);
       
       // Determine file extension from mime type
       let extension = 'webm';
@@ -359,6 +362,7 @@ export async function registerRoutes(
         response_format: "json",
       });
 
+      console.log(`[Transcribe] Success: "${transcription.text}"`);
       res.json({ 
         text: transcription.text,
         success: true 
