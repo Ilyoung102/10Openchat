@@ -48,6 +48,7 @@ interface VoiceRecognitionResult {
   countdown: number | null;
   isCountingDown: boolean;
   isTranscribing: boolean;
+  hasAudioInput: boolean;
   mode: SpeechMode;
 }
 
@@ -66,6 +67,7 @@ const noopResult: VoiceRecognitionResult = {
   countdown: null,
   isCountingDown: false,
   isTranscribing: false,
+  hasAudioInput: false,
   mode: 'none'
 };
 
@@ -91,11 +93,13 @@ export function useVoiceRecognition(props: UseVoiceRecognitionProps): VoiceRecog
     return {
       ...webSpeechResult,
       isTranscribing: false,
+      hasAudioInput: webSpeechResult.hasAudioInput,
       mode: 'web'
     };
   } else if (mode === 'whisper') {
     return {
       ...whisperResult,
+      hasAudioInput: whisperResult.hasAudioInput,
       mode: 'whisper'
     };
   } else {

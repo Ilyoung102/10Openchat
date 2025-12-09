@@ -26,9 +26,13 @@ export const useWhisperRecognition = ({
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isPausedForTTS, setIsPausedForTTS] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [hasAudioInput, setHasAudioInput] = useState(false);
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioLevelIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const isListeningRef = useRef(false);
   const autoSendTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -59,6 +63,63 @@ export const useWhisperRecognition = ({
     const hasMediaRecorder = typeof MediaRecorder !== 'undefined';
     
     setHasSupport(hasMediaDevices && hasMediaRecorder);
+  }, []);
+
+  const stopAudioLevelMonitoring = useCallback(() => {
+    if (audioLevelIntervalRef.current) {
+      clearInterval(audioLevelIntervalRef.current);
+      audioLevelIntervalRef.current = null;
+    }
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {}
+      audioContextRef.current = null;
+    }
+    analyserRef.current = null;
+    setHasAudioInput(false);
+  }, []);
+
+  const startAudioLevelMonitoring = useCallback((stream: MediaStream) => {
+    if (audioLevelIntervalRef.current) {
+      clearInterval(audioLevelIntervalRef.current);
+      audioLevelIntervalRef.current = null;
+    }
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {}
+      audioContextRef.current = null;
+    }
+    analyserRef.current = null;
+
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+
+      const audioContext = new AudioContext();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.3;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const threshold = 20;
+
+      audioLevelIntervalRef.current = setInterval(() => {
+        if (!analyserRef.current) return;
+        analyserRef.current.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+        setHasAudioInput(average > threshold);
+      }, 50);
+    } catch (e) {
+      console.error('Failed to start audio level monitoring:', e);
+    }
   }, []);
 
   const clearTimers = useCallback(() => {
@@ -245,6 +306,7 @@ export const useWhisperRecognition = ({
 
   const stopListening = useCallback(() => {
     clearTimers();
+    stopAudioLevelMonitoring();
     isListeningRef.current = false;
     setIsListening(false);
     setIsPausedForTTS(false);
@@ -261,7 +323,7 @@ export const useWhisperRecognition = ({
     chunksRef.current = [];
     accumulatedTranscriptRef.current = '';
     setTranscript('');
-  }, [clearTimers, stopRecording]);
+  }, [clearTimers, stopRecording, stopAudioLevelMonitoring]);
 
   const pauseForTTS = useCallback(() => {
     if (!pauseWhenTTSPlaying) return;
@@ -310,6 +372,8 @@ export const useWhisperRecognition = ({
       isListeningRef.current = true;
       setIsListening(true);
       
+      startAudioLevelMonitoring(stream);
+      
       if (initialText && onResultRef.current) {
         onResultRef.current(initialText);
       }
@@ -329,7 +393,7 @@ export const useWhisperRecognition = ({
       isListeningRef.current = false;
       setIsListening(false);
     }
-  }, [hasSupport, clearTimers, startAutoSendTimer, startNewRecording]);
+  }, [hasSupport, clearTimers, startAutoSendTimer, startNewRecording, startAudioLevelMonitoring]);
 
   const cancelAutoSend = useCallback(() => {
     clearTimers();
@@ -354,6 +418,7 @@ export const useWhisperRecognition = ({
   useEffect(() => {
     return () => {
       clearTimers();
+      stopAudioLevelMonitoring();
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         try {
           mediaRecorderRef.current.stop();
@@ -363,7 +428,7 @@ export const useWhisperRecognition = ({
         streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, [clearTimers]);
+  }, [clearTimers, stopAudioLevelMonitoring]);
 
   return {
     isListening,
@@ -379,6 +444,7 @@ export const useWhisperRecognition = ({
     hasSupport,
     countdown,
     isCountingDown: countdown !== null && countdown > 0,
-    isTranscribing
+    isTranscribing,
+    hasAudioInput
   };
 };

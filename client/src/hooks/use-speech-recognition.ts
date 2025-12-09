@@ -26,8 +26,13 @@ export const useSpeechRecognition = ({
   const [hasSupport, setHasSupport] = useState(true);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isPausedForTTS, setIsPausedForTTS] = useState(false);
+  const [hasAudioInput, setHasAudioInput] = useState(false);
   
   const recognitionRef = useRef<any>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioLevelIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isListeningRef = useRef(false);
   const autoSendTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -59,6 +64,78 @@ export const useSpeechRecognition = ({
     }
 
     setHasSupport(true);
+  }, []);
+
+  const stopAudioLevelMonitoring = useCallback(() => {
+    if (audioLevelIntervalRef.current) {
+      clearInterval(audioLevelIntervalRef.current);
+      audioLevelIntervalRef.current = null;
+    }
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {}
+      audioContextRef.current = null;
+    }
+    analyserRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setHasAudioInput(false);
+  }, []);
+
+  const startAudioLevelMonitoring = useCallback(async () => {
+    if (streamRef.current) return;
+    
+    if (audioLevelIntervalRef.current) {
+      clearInterval(audioLevelIntervalRef.current);
+      audioLevelIntervalRef.current = null;
+    }
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {}
+      audioContextRef.current = null;
+    }
+    analyserRef.current = null;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        } 
+      });
+      streamRef.current = stream;
+
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+
+      const audioContext = new AudioContext();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.3;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const threshold = 20;
+
+      audioLevelIntervalRef.current = setInterval(() => {
+        if (!analyserRef.current) return;
+        analyserRef.current.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+        setHasAudioInput(average > threshold);
+      }, 50);
+    } catch (e) {
+      console.error('Failed to start audio level monitoring:', e);
+    }
   }, []);
 
   const clearTimers = useCallback(() => {
@@ -114,6 +191,7 @@ export const useSpeechRecognition = ({
 
   const stopListening = useCallback(() => {
     clearTimers();
+    stopAudioLevelMonitoring();
     isListeningRef.current = false;
     setIsListening(false);
     setIsPausedForTTS(false);
@@ -131,7 +209,7 @@ export const useSpeechRecognition = ({
     accumulatedTranscriptRef.current = '';
     lastFinalResultRef.current = '';
     setTranscript('');
-  }, [clearTimers]);
+  }, [clearTimers, stopAudioLevelMonitoring]);
 
   // TTS 재생 중 마이크 일시 정지/재개
   const pauseForTTS = useCallback(() => {
@@ -295,6 +373,7 @@ export const useSpeechRecognition = ({
       isListeningRef.current = true;
       setIsListening(true);
       setError(null);
+      startAudioLevelMonitoring();
     };
 
     recognition.onresult = handleRecognitionResult;
@@ -336,7 +415,7 @@ export const useSpeechRecognition = ({
       isListeningRef.current = false;
       setIsListening(false);
     }
-  }, [lang, clearTimers, handleRecognitionResult, stopListening, startAutoSendTimer]);
+  }, [lang, clearTimers, handleRecognitionResult, stopListening, startAutoSendTimer, startAudioLevelMonitoring]);
 
   const cancelAutoSend = useCallback(() => {
     clearTimers();
@@ -361,13 +440,14 @@ export const useSpeechRecognition = ({
   useEffect(() => {
     return () => {
       clearTimers();
+      stopAudioLevelMonitoring();
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
         } catch (e) {}
       }
     };
-  }, [clearTimers]);
+  }, [clearTimers, stopAudioLevelMonitoring]);
 
   return { 
     isListening, 
@@ -382,6 +462,7 @@ export const useSpeechRecognition = ({
     error, 
     hasSupport,
     countdown,
-    isCountingDown: countdown !== null && countdown > 0
+    isCountingDown: countdown !== null && countdown > 0,
+    hasAudioInput
   };
 };

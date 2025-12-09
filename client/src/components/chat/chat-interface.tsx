@@ -57,6 +57,7 @@ export const ChatInput = ({
     countdown,
     isCountingDown,
     isTranscribing,
+    hasAudioInput,
     mode
   } = useVoiceRecognition({
     onResult: (text: string) => setInput(text),
@@ -153,6 +154,16 @@ export const ChatInput = ({
                 : "bg-red-500/20 text-red-400 border-red-500/30"
             )}
           >
+            {/* Audio Input LED - Blue blinking when mic receives audio */}
+            <div 
+              className={cn(
+                "w-3 h-3 rounded-full transition-all duration-100",
+                hasAudioInput 
+                  ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)] animate-pulse" 
+                  : "bg-gray-600"
+              )}
+              data-testid="led-audio-input"
+            />
             <div className={cn(
               "w-2 h-2 rounded-full",
               isPausedForTTS ? "bg-yellow-500" : "bg-red-500 animate-pulse"
