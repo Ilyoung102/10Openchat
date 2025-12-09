@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Mic, StopCircle, Sparkles, Paperclip, X, Radio } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
+import { useVoiceRecognition } from '@/hooks/use-voice-recognition';
 import { useWakeWord } from '@/hooks/use-wake-word';
 import { cn } from '@/lib/utils';
 import { playWakeSound } from '@/lib/sounds';
@@ -55,15 +55,19 @@ export const ChatInput = ({
     error,
     hasSupport,
     countdown,
-    isCountingDown
-  } = useSpeechRecognition({
-    onResult: (text) => setInput(text),
+    isCountingDown,
+    isTranscribing,
+    mode
+  } = useVoiceRecognition({
+    onResult: (text: string) => setInput(text),
     onSpeechEnd: handleSpeechEnd,
     onStopWordDetected: onStopWordDetected,
     lang: 'ko-KR',
     autoSendDelayMs: 1500,
     pauseWhenTTSPlaying: true
   });
+
+  const useWhisperFallback = mode === 'whisper';
 
   const handleWakeWordDetected = useCallback((remainingText?: string) => {
     if (isLoadingRef.current) return;
@@ -154,7 +158,7 @@ export const ChatInput = ({
               isPausedForTTS ? "bg-yellow-500" : "bg-red-500 animate-pulse"
             )} />
             <span className="text-xs font-medium">
-              {isPausedForTTS ? "TTS 재생 중 (대기)" : "음성 인식 중..."}
+              {isPausedForTTS ? "TTS 재생 중 (대기)" : isTranscribing ? "음성 변환 중..." : useWhisperFallback ? "녹음 중..." : "음성 인식 중..."}
             </span>
           </motion.div>
         )}
