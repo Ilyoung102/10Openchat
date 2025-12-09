@@ -634,13 +634,11 @@ export default function Home() {
                 )}
                 <button 
                   onClick={() => setActiveCategory(activeCategory === category.id ? null : category.id)}
-                  className={cn(
-                    "w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-all group",
-                    activeCategory === category.id 
-                      ? "bg-primary/20" 
-                      : "hover:bg-white/5"
-                  )}
-                  style={{ color: activeCategory === category.id ? '#4ade80' : '#d1d5db' }}
+                  className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-all group hover:bg-white/5"
+                  style={{ 
+                    backgroundColor: activeCategory === category.id ? '#1e3a5f' : 'transparent',
+                    color: activeCategory === category.id ? '#4ade80' : '#d1d5db' 
+                  }}
                   data-testid={`button-category-${category.id}`}
                 >
                   <div className="flex items-center gap-2">
@@ -732,12 +730,11 @@ export default function Home() {
                       </div>
                     ) : (
                       <div 
-                        className={cn(
-                          "flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors",
-                          currentSessionId === session.id 
-                            ? "bg-primary/20 text-primary" 
-                            : "text-gray-300 hover:bg-white/5"
-                        )}
+                        className="flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors hover:bg-white/5"
+                        style={{ 
+                          backgroundColor: currentSessionId === session.id ? '#1e3a5f' : 'transparent',
+                          color: currentSessionId === session.id ? '#4ade80' : '#d1d5db'
+                        }}
                         onClick={() => handleSelectSession(session.id)}
                         data-testid={`button-select-session-${session.id}`}
                       >
@@ -775,7 +772,7 @@ export default function Home() {
                       >
                         <button 
                           onClick={() => handleTogglePin(session.id)}
-                          className="w-full text-left px-2 py-1.5 text-[10px] text-gray-300 hover:bg-primary/20 hover:text-primary flex items-center gap-1.5"
+                          className="w-full text-left px-2 py-1.5 text-[10px] text-gray-300 hover:bg-[#1e3a5f] hover:text-green-400 flex items-center gap-1.5"
                           data-testid={`button-session-pin-${session.id}`}
                         >
                           {session.pinned ? <ArrowUp size={10} className="rotate-180" /> : <ArrowUp size={10} />}
@@ -844,10 +841,13 @@ export default function Home() {
                 className={cn(
                     "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border",
                     isTTSActive 
-                        ? "bg-primary/20 border-primary/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]" 
+                        ? "border-blue-500/40 shadow-[0_0_10px_rgba(59,130,246,0.2)]" 
                         : "border-white/20 bg-white/5 hover:bg-white/10"
                 )}
-                style={{ color: isTTSActive ? '#06b6d4' : '#9ca3af' }}
+                style={{ 
+                  backgroundColor: isTTSActive ? '#1e3a5f' : undefined,
+                  color: isTTSActive ? '#60a5fa' : '#9ca3af' 
+                }}
                 data-testid="button-tts-toggle"
             >
                 {isTTSActive ? <Volume2 size={18} /> : <VolumeX size={18} />}
@@ -1039,7 +1039,7 @@ export default function Home() {
                       disabled={isLoading}
                       className="flex flex-col items-center justify-center py-1 px-0.5 rounded text-[9px] font-medium transition-all
                         disabled:opacity-50 disabled:cursor-not-allowed
-                        bg-[#1a1a1a] text-gray-300 hover:bg-primary/20 hover:text-primary border border-white/5 hover:border-primary/30"
+                        bg-[#1a1a1a] text-gray-300 hover:bg-[#1e3a5f] hover:text-green-400 border border-white/5 hover:border-green-500/30"
                       data-testid={`button-service-${item.id}`}
                     >
                       <span className="text-sm mb-0">{item.icon}</span>
