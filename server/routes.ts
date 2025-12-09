@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import OpenAI from "openai";
+import { Readable } from "stream";
+import multer from "multer";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -322,6 +324,51 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Search error:", error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Whisper transcription endpoint for Smart TV (MediaRecorder fallback)
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit
+  });
+
+  app.post("/api/transcribe", upload.single('audio'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "Audio file is required" });
+      }
+
+      const audioBuffer = req.file.buffer;
+      const mimeType = req.file.mimetype || 'audio/webm';
+      
+      // Determine file extension from mime type
+      let extension = 'webm';
+      if (mimeType.includes('mp4')) extension = 'mp4';
+      else if (mimeType.includes('mpeg') || mimeType.includes('mp3')) extension = 'mp3';
+      else if (mimeType.includes('wav')) extension = 'wav';
+      else if (mimeType.includes('ogg')) extension = 'ogg';
+
+      // Create a File object for OpenAI API
+      const file = new File([audioBuffer], `audio.${extension}`, { type: mimeType });
+
+      const transcription = await openai.audio.transcriptions.create({
+        file: file,
+        model: "whisper-1",
+        language: "ko", // Korean
+        response_format: "json",
+      });
+
+      res.json({ 
+        text: transcription.text,
+        success: true 
+      });
+    } catch (error: any) {
+      console.error("Transcription error:", error);
+      res.status(500).json({ 
+        error: error.message,
+        success: false 
+      });
     }
   });
 
