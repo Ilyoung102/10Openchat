@@ -27,6 +27,7 @@ export const useSpeechRecognition = ({
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isPausedForTTS, setIsPausedForTTS] = useState(false);
   const [hasAudioInput, setHasAudioInput] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
   
   const recognitionRef = useRef<any>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -373,32 +374,40 @@ export const useSpeechRecognition = ({
       isListeningRef.current = true;
       setIsListening(true);
       setError(null);
+      setDebugInfo('Started');
       startAudioLevelMonitoring();
     };
 
-    recognition.onresult = handleRecognitionResult;
+    recognition.onresult = (event: any) => {
+      setDebugInfo(`Result: ${event.results.length} items`);
+      handleRecognitionResult(event);
+    };
 
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event.error);
+      setDebugInfo(`Error: ${event.error}`);
       
       if (event.error === 'no-speech') {
-        // 음성이 감지되지 않음 - 조용히 처리
+        setDebugInfo('No speech detected');
       } else if (event.error === 'not-allowed' || event.error === 'permission-denied') {
         setError("마이크 권한이 필요합니다. 브라우저 설정에서 허용해주세요.");
         stopListening();
       } else if (event.error === 'aborted') {
-        // 사용자가 취소함 - 정상
+        setDebugInfo('Aborted');
       } else {
         setError(`음성 인식 오류: ${event.error}`);
       }
     };
 
     recognition.onend = () => {
+      setDebugInfo('Ended, restarting...');
       if (isListeningRef.current && !isPausedForTTSRef.current) {
         try {
           recognition.start();
+          setDebugInfo('Restarted');
         } catch (e) {
           console.error('Failed to restart recognition:', e);
+          setDebugInfo('Restart failed');
           isListeningRef.current = false;
           setIsListening(false);
         }
@@ -463,6 +472,7 @@ export const useSpeechRecognition = ({
     hasSupport,
     countdown,
     isCountingDown: countdown !== null && countdown > 0,
-    hasAudioInput
+    hasAudioInput,
+    debugInfo
   };
 };

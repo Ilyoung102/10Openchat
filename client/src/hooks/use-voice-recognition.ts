@@ -96,7 +96,7 @@ export function useVoiceRecognition(props: UseVoiceRecognitionProps): VoiceRecog
       ...webSpeechResult,
       isTranscribing: false,
       hasAudioInput: webSpeechResult.hasAudioInput,
-      debugInfo: 'Web Speech API',
+      debugInfo: webSpeechResult.debugInfo || 'Web Speech',
       mode: 'web'
     };
   } else if (mode === 'whisper') {
