@@ -269,7 +269,7 @@ export const useWhisperRecognition = ({
 
   const startNewRecording = useCallback(() => {
     if (!streamRef.current || !isListeningRef.current || isPausedForTTSRef.current) {
-      addDebugLog('No stream or not listening');
+      addDebugLog('Skip: no stream/not listening');
       return;
     }
 
@@ -281,66 +281,99 @@ export const useWhisperRecognition = ({
     chunksRef.current = [];
     
     try {
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
-        ? 'audio/webm;codecs=opus' 
-        : MediaRecorder.isTypeSupported('audio/webm')
-          ? 'audio/webm'
-          : 'audio/mp4';
+      // Try multiple formats for Smart TV compatibility
+      let mimeType = '';
+      const typesToTry = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav', ''];
+      for (const type of typesToTry) {
+        if (type === '' || MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
+        }
+      }
       
-      addDebugLog(`MIME: ${mimeType}`);
-      mimeTypeRef.current = mimeType;
-      const mediaRecorder = new MediaRecorder(streamRef.current, { mimeType });
+      addDebugLog(`Using: ${mimeType || 'default'}`);
+      mimeTypeRef.current = mimeType || 'audio/webm';
+      
+      const options: MediaRecorderOptions = mimeType ? { mimeType } : {};
+      const mediaRecorder = new MediaRecorder(streamRef.current, options);
+      
+      addDebugLog(`Recorder created, state: ${mediaRecorder.state}`);
       
       mediaRecorder.ondataavailable = (event) => {
+        addDebugLog(`Data event: ${event.data.size}B`);
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
-          addDebugLog(`Chunk #${chunksRef.current.length}: ${event.data.size}B`);
-        } else {
-          addDebugLog(`Empty chunk received`);
         }
       };
 
       mediaRecorder.onerror = (event: any) => {
-        addDebugLog(`Recorder error: ${event.error?.message || 'unknown'}`);
+        addDebugLog(`ERROR: ${event.error?.name || 'unknown'} - ${event.error?.message || ''}`);
+      };
+
+      mediaRecorder.onstart = () => {
+        addDebugLog(`onstart fired, state: ${mediaRecorder.state}`);
+      };
+
+      mediaRecorder.onpause = () => {
+        addDebugLog(`onpause fired`);
+      };
+
+      mediaRecorder.onresume = () => {
+        addDebugLog(`onresume fired`);
       };
       
       mediaRecorder.onstop = async () => {
+        addDebugLog(`onstop fired`);
         const audioBlob = new Blob(chunksRef.current, { type: mimeTypeRef.current });
         const chunkCount = chunksRef.current.length;
         chunksRef.current = [];
         
         const recordingDuration = Date.now() - recordingStartTimeRef.current;
-        addDebugLog(`Stopped: ${chunkCount} chunks, ${audioBlob.size}B, ${recordingDuration}ms`);
+        addDebugLog(`Blob: ${chunkCount} chunks, ${audioBlob.size}B, ${recordingDuration}ms`);
         
         if (recordingDuration > 500 && audioBlob.size > 0) {
-          addDebugLog(`Sending ${audioBlob.size}B to API...`);
+          addDebugLog(`Sending to API...`);
           await transcribeAudio(audioBlob);
         } else {
-          addDebugLog(`Skip: duration=${recordingDuration}ms, size=${audioBlob.size}B`);
+          addDebugLog(`Skip: too short/empty`);
         }
         
         if (isListeningRef.current && !isPausedForTTSRef.current && streamRef.current && startNewRecordingRef.current) {
-          addDebugLog('Restarting recording...');
+          addDebugLog('Restarting...');
           startNewRecordingRef.current();
-        } else {
-          addDebugLog(`Not restarting: listening=${isListeningRef.current}, paused=${isPausedForTTSRef.current}, stream=${!!streamRef.current}`);
         }
       };
       
       mediaRecorderRef.current = mediaRecorder;
       recordingStartTimeRef.current = Date.now();
       
-      mediaRecorder.start(1000); // Request data every 1 second
-      addDebugLog(`Recording started (timeslice=1000ms)`);
+      // Try without timeslice first (some browsers don't support it)
+      try {
+        mediaRecorder.start(1000);
+        addDebugLog(`start(1000) called`);
+      } catch (e) {
+        addDebugLog(`timeslice failed, trying start()`);
+        mediaRecorder.start();
+      }
+      
+      // Check state after a moment
+      setTimeout(() => {
+        if (mediaRecorderRef.current) {
+          addDebugLog(`State after 100ms: ${mediaRecorderRef.current.state}`);
+        }
+      }, 100);
+      
       silenceTimerRef.current = setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          addDebugLog(`5s timer: stopping recorder`);
+          addDebugLog(`5s: calling stop()`);
           mediaRecorderRef.current.stop();
+        } else {
+          addDebugLog(`5s: state=${mediaRecorderRef.current?.state || 'null'}`);
         }
       }, 5000);
     } catch (e: any) {
       console.error('Failed to start recording:', e);
-      addDebugLog(`Error: ${e.name} - ${e.message}`);
+      addDebugLog(`FATAL: ${e.name} - ${e.message}`);
       setError('녹음을 시작할 수 없습니다.');
     }
   }, [transcribeAudio, addDebugLog]);
@@ -392,8 +425,13 @@ export const useWhisperRecognition = ({
   const startListening = useCallback(async (initialText?: string) => {
     if (typeof window === 'undefined') return;
     
-    addDebugLog('startListening called');
-    setDebugLogs([]); // Clear logs on new session
+    setDebugLogs([]); // Clear logs FIRST
+    
+    // Use setTimeout to ensure state is cleared before adding new logs
+    setTimeout(() => {
+      const log = debugLog('Session started');
+      setDebugLogs([log]);
+    }, 0);
     
     if (!hasSupport) {
       addDebugLog('No support for media devices');
@@ -409,7 +447,7 @@ export const useWhisperRecognition = ({
     setIsPausedForTTS(false);
 
     try {
-      addDebugLog('Requesting mic permission...');
+      addDebugLog('Requesting mic...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -418,11 +456,16 @@ export const useWhisperRecognition = ({
         } 
       });
       
-      addDebugLog(`Mic granted: ${stream.getAudioTracks().length} track(s)`);
+      addDebugLog(`Mic OK: ${stream.getAudioTracks().length} track`);
       const track = stream.getAudioTracks()[0];
       if (track) {
         const settings = track.getSettings();
-        addDebugLog(`Track: ${track.label}, sampleRate=${settings.sampleRate || '?'}`);
+        addDebugLog(`Track: ${track.label?.substring(0,20) || 'default'}`);
+        
+        // Check MediaRecorder support
+        const supportedTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+        const supported = supportedTypes.filter(t => MediaRecorder.isTypeSupported(t));
+        addDebugLog(`Formats: ${supported.join(', ') || 'NONE!'}`);
       }
       
       streamRef.current = stream;
