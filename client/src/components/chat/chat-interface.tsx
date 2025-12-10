@@ -69,6 +69,7 @@ export const ChatInput = ({
     isTranscribing,
     hasAudioInput,
     debugInfo,
+    debugLogs,
     mode
   } = useVoiceRecognition({
     onResult: (text: string) => setInput(text),
@@ -191,13 +192,31 @@ export const ChatInput = ({
         )}
       </AnimatePresence>
 
-      {/* Debug Panel - shows when listening */}
+      {/* Debug Panel - shows when listening (expanded log view) */}
       {isListening && (
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-3 py-2 rounded-lg border border-gray-700 min-w-[200px]">
-          <div>Mode: <span className="text-cyan-400">{mode}</span>{forceWhisper && <span className="text-purple-400 ml-1">(강제)</span>}</div>
-          <div>Audio: <span className={hasAudioInput ? "text-green-400" : "text-red-400"}>{hasAudioInput ? "감지됨" : "없음"}</span></div>
-          <div>Status: <span className="text-yellow-400">{debugInfo || "대기"}</span></div>
-          {error && <div className="text-red-400">Error: {error}</div>}
+        <div className="absolute -top-64 left-1/2 -translate-x-1/2 bg-black/95 text-white text-[10px] px-3 py-2 rounded-lg border border-gray-700 w-[350px] max-h-[200px] overflow-hidden" data-testid="debug-panel">
+          <div className="flex gap-4 mb-1 pb-1 border-b border-gray-700">
+            <span>Mode: <span className="text-cyan-400">{mode}</span>{forceWhisper && <span className="text-purple-400 ml-1">(강제)</span>}</span>
+            <span>Audio: <span className={hasAudioInput ? "text-green-400" : "text-red-400"}>{hasAudioInput ? "🎤" : "🔇"}</span></span>
+          </div>
+          <div className="font-mono overflow-y-auto max-h-[150px] space-y-0.5">
+            {debugLogs.length === 0 ? (
+              <div className="text-gray-500">Waiting for events...</div>
+            ) : (
+              debugLogs.map((log, i) => (
+                <div key={i} className={cn(
+                  "leading-tight",
+                  log.includes('Error') || log.includes('error') ? "text-red-400" :
+                  log.includes('Sending') || log.includes('API') ? "text-yellow-400" :
+                  log.includes('Result') ? "text-green-400" :
+                  "text-gray-300"
+                )}>
+                  {log}
+                </div>
+              ))
+            )}
+          </div>
+          {error && <div className="text-red-400 mt-1 pt-1 border-t border-gray-700">Error: {error}</div>}
         </div>
       )}
 

@@ -2,6 +2,12 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 const STOP_WORDS = ['스톱', '정지', '그만', '알았어', '내말 들어봐', '내 말 들어봐', '멈춰', '중지'];
 
+function debugLog(message: string) {
+  const timestamp = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  console.log(`[Whisper ${timestamp}] ${message}`);
+  return `[${timestamp}] ${message}`;
+}
+
 interface UseWhisperRecognitionProps {
   onResult?: (transcript: string) => void;
   onSpeechEnd?: (finalTranscript: string) => void;
@@ -28,6 +34,13 @@ export const useWhisperRecognition = ({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [hasAudioInput, setHasAudioInput] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+
+  const addDebugLog = useCallback((message: string) => {
+    const logEntry = debugLog(message);
+    setDebugInfo(message);
+    setDebugLogs(prev => [...prev.slice(-14), logEntry]);
+  }, []);
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -178,9 +191,13 @@ export const useWhisperRecognition = ({
   }, [autoSendDelayMs, clearTimers]);
 
   const transcribeAudio = useCallback(async (audioBlob: Blob): Promise<void> => {
-    if (audioBlob.size === 0) return;
+    if (audioBlob.size === 0) {
+      addDebugLog('transcribeAudio: empty blob');
+      return;
+    }
     
     setIsTranscribing(true);
+    addDebugLog('Transcribing...');
     
     try {
       const formData = new FormData();
@@ -191,11 +208,16 @@ export const useWhisperRecognition = ({
         body: formData,
       });
       
+      addDebugLog(`API response: ${response.status} ${response.statusText}`);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        addDebugLog(`API error: ${errorText.substring(0, 100)}`);
         throw new Error('Transcription failed');
       }
       
       const data = await response.json();
+      addDebugLog(`Result: ${data.success ? `"${data.text?.substring(0, 30)}..."` : 'no text'}`);
       
       if (data.success && data.text) {
         const newText = data.text.trim();
@@ -224,11 +246,12 @@ export const useWhisperRecognition = ({
       }
     } catch (err: any) {
       console.error('Transcription error:', err);
+      addDebugLog(`Transcription error: ${err.message}`);
       setError('음성 변환 오류가 발생했습니다.');
     } finally {
       setIsTranscribing(false);
     }
-  }, [checkStopWords, clearTimers, startAutoSendTimer]);
+  }, [checkStopWords, clearTimers, startAutoSendTimer, addDebugLog]);
 
   const stopRecording = useCallback(() => {
     if (silenceTimerRef.current) {
@@ -246,7 +269,7 @@ export const useWhisperRecognition = ({
 
   const startNewRecording = useCallback(() => {
     if (!streamRef.current || !isListeningRef.current || isPausedForTTSRef.current) {
-      setDebugInfo('No stream or not listening');
+      addDebugLog('No stream or not listening');
       return;
     }
 
@@ -264,15 +287,21 @@ export const useWhisperRecognition = ({
           ? 'audio/webm'
           : 'audio/mp4';
       
-      setDebugInfo(`Starting: ${mimeType}`);
+      addDebugLog(`MIME: ${mimeType}`);
       mimeTypeRef.current = mimeType;
       const mediaRecorder = new MediaRecorder(streamRef.current, { mimeType });
       
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
-          setDebugInfo(`Chunks: ${chunksRef.current.length}, Size: ${event.data.size}`);
+          addDebugLog(`Chunk #${chunksRef.current.length}: ${event.data.size}B`);
+        } else {
+          addDebugLog(`Empty chunk received`);
         }
+      };
+
+      mediaRecorder.onerror = (event: any) => {
+        addDebugLog(`Recorder error: ${event.error?.message || 'unknown'}`);
       };
       
       mediaRecorder.onstop = async () => {
@@ -281,17 +310,20 @@ export const useWhisperRecognition = ({
         chunksRef.current = [];
         
         const recordingDuration = Date.now() - recordingStartTimeRef.current;
-        setDebugInfo(`Stop: ${chunkCount} chunks, ${audioBlob.size}B, ${recordingDuration}ms`);
+        addDebugLog(`Stopped: ${chunkCount} chunks, ${audioBlob.size}B, ${recordingDuration}ms`);
         
         if (recordingDuration > 500 && audioBlob.size > 0) {
-          setDebugInfo(`Sending: ${audioBlob.size}B`);
+          addDebugLog(`Sending ${audioBlob.size}B to API...`);
           await transcribeAudio(audioBlob);
         } else {
-          setDebugInfo(`Skip: too short or empty`);
+          addDebugLog(`Skip: duration=${recordingDuration}ms, size=${audioBlob.size}B`);
         }
         
         if (isListeningRef.current && !isPausedForTTSRef.current && streamRef.current && startNewRecordingRef.current) {
+          addDebugLog('Restarting recording...');
           startNewRecordingRef.current();
+        } else {
+          addDebugLog(`Not restarting: listening=${isListeningRef.current}, paused=${isPausedForTTSRef.current}, stream=${!!streamRef.current}`);
         }
       };
       
@@ -299,19 +331,19 @@ export const useWhisperRecognition = ({
       recordingStartTimeRef.current = Date.now();
       
       mediaRecorder.start(1000); // Request data every 1 second
-      setDebugInfo(`Recording started`);
+      addDebugLog(`Recording started (timeslice=1000ms)`);
       silenceTimerRef.current = setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          setDebugInfo(`Timer stop after 5s`);
+          addDebugLog(`5s timer: stopping recorder`);
           mediaRecorderRef.current.stop();
         }
       }, 5000);
     } catch (e: any) {
       console.error('Failed to start recording:', e);
-      setDebugInfo(`Error: ${e.message}`);
+      addDebugLog(`Error: ${e.name} - ${e.message}`);
       setError('녹음을 시작할 수 없습니다.');
     }
-  }, [transcribeAudio]);
+  }, [transcribeAudio, addDebugLog]);
 
   useEffect(() => {
     startNewRecordingRef.current = startNewRecording;
@@ -360,7 +392,11 @@ export const useWhisperRecognition = ({
   const startListening = useCallback(async (initialText?: string) => {
     if (typeof window === 'undefined') return;
     
+    addDebugLog('startListening called');
+    setDebugLogs([]); // Clear logs on new session
+    
     if (!hasSupport) {
+      addDebugLog('No support for media devices');
       setError('이 기기에서는 음성 녹음을 지원하지 않습니다.');
       return;
     }
@@ -373,6 +409,7 @@ export const useWhisperRecognition = ({
     setIsPausedForTTS(false);
 
     try {
+      addDebugLog('Requesting mic permission...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -380,6 +417,13 @@ export const useWhisperRecognition = ({
           autoGainControl: true,
         } 
       });
+      
+      addDebugLog(`Mic granted: ${stream.getAudioTracks().length} track(s)`);
+      const track = stream.getAudioTracks()[0];
+      if (track) {
+        const settings = track.getSettings();
+        addDebugLog(`Track: ${track.label}, sampleRate=${settings.sampleRate || '?'}`);
+      }
       
       streamRef.current = stream;
       isListeningRef.current = true;
@@ -398,6 +442,7 @@ export const useWhisperRecognition = ({
       startNewRecording();
     } catch (err: any) {
       console.error('getUserMedia error:', err);
+      addDebugLog(`Mic error: ${err.name} - ${err.message}`);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setError('마이크 권한이 필요합니다. 브라우저 설정에서 허용해주세요.');
       } else {
@@ -406,7 +451,7 @@ export const useWhisperRecognition = ({
       isListeningRef.current = false;
       setIsListening(false);
     }
-  }, [hasSupport, clearTimers, startAutoSendTimer, startNewRecording, startAudioLevelMonitoring]);
+  }, [hasSupport, clearTimers, startAutoSendTimer, startNewRecording, startAudioLevelMonitoring, addDebugLog]);
 
   const cancelAutoSend = useCallback(() => {
     clearTimers();
@@ -459,6 +504,7 @@ export const useWhisperRecognition = ({
     isCountingDown: countdown !== null && countdown > 0,
     isTranscribing,
     hasAudioInput,
-    debugInfo
+    debugInfo,
+    debugLogs
   };
 };

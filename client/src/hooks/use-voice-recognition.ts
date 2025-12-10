@@ -52,6 +52,7 @@ interface VoiceRecognitionResult {
   isTranscribing: boolean;
   hasAudioInput: boolean;
   debugInfo: string;
+  debugLogs: string[];
   mode: SpeechMode;
 }
 
@@ -72,6 +73,7 @@ const noopResult: VoiceRecognitionResult = {
   isTranscribing: false,
   hasAudioInput: false,
   debugInfo: '',
+  debugLogs: [],
   mode: 'none'
 };
 
@@ -221,6 +223,7 @@ export function useVoiceRecognition(props: UseVoiceRecognitionProps): VoiceRecog
       isTranscribing: false,
       hasAudioInput: webSpeechResult.hasAudioInput,
       debugInfo: webSpeechResult.debugInfo || 'Web Speech',
+      debugLogs: [],
       mode: 'web'
     };
   } else if (reportedMode === 'whisper') {
@@ -230,6 +233,7 @@ export function useVoiceRecognition(props: UseVoiceRecognitionProps): VoiceRecog
       stopListening: wrappedStopListening,
       hasAudioInput: whisperResult.hasAudioInput,
       debugInfo: autoFallbackActive ? `${whisperResult.debugInfo} (auto)` : whisperResult.debugInfo,
+      debugLogs: whisperResult.debugLogs || [],
       mode: 'whisper'
     };
   } else {
