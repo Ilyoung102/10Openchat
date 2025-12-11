@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Mic, StopCircle, Sparkles, Paperclip, X, Radio, Zap } from 'lucide-react';
+import { Send, Mic, StopCircle, Sparkles, Paperclip, X, Radio, Zap, Tv } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVoiceRecognition } from '@/hooks/use-voice-recognition';
 import { useWakeWord } from '@/hooks/use-wake-word';
 import { cn } from '@/lib/utils';
 import { playWakeSound } from '@/lib/sounds';
+import { audioPlayer, type AudioMode } from '@/lib/audio-player';
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -32,6 +33,12 @@ export const ChatInput = ({
     }
     return false;
   });
+  const [smartTVMode, setSmartTVMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('audioMode') === 'smarttv';
+    }
+    return false;
+  });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const onSendRef = useRef(onSend);
   const isLoadingRef = useRef(isLoading);
@@ -44,6 +51,12 @@ export const ChatInput = ({
   useEffect(() => {
     localStorage.setItem('forceWhisper', forceWhisper.toString());
   }, [forceWhisper]);
+
+  useEffect(() => {
+    const mode: AudioMode = smartTVMode ? 'smarttv' : 'normal';
+    localStorage.setItem('audioMode', mode);
+    audioPlayer.setMode(mode);
+  }, [smartTVMode]);
 
   const handleSpeechEnd = useCallback((text: string) => {
     if (text.trim() && !isLoadingRef.current) {
@@ -309,7 +322,7 @@ export const ChatInput = ({
             </button>
           )}
 
-          {/* Force Whisper Mode Toggle - for Smart TV compatibility */}
+          {/* Force Whisper Mode Toggle - for Smart TV voice input */}
           <button 
             onClick={() => setForceWhisper(!forceWhisper)}
             className={cn(
@@ -318,12 +331,30 @@ export const ChatInput = ({
                 ? "text-purple-400 bg-purple-500/20"
                 : "text-gray-400 hover:text-white hover:bg-white/10"
             )}
-            title={forceWhisper ? "Whisper 모드 끄기 (현재: 강제 Whisper)" : "Whisper 모드 켜기 (스마트 TV용)"}
+            title={forceWhisper ? "Whisper 모드 끄기 (현재: 강제 Whisper)" : "Whisper 모드 켜기 (스마트 TV 음성입력용)"}
             data-testid="button-force-whisper"
           >
             <Zap size={20} />
             {forceWhisper && (
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-500 rounded-full" />
+            )}
+          </button>
+
+          {/* Smart TV Audio Mode Toggle - for 48kHz audio output */}
+          <button 
+            onClick={() => setSmartTVMode(!smartTVMode)}
+            className={cn(
+              "p-2 rounded-lg transition-all duration-300 relative",
+              smartTVMode
+                ? "text-cyan-400 bg-cyan-500/20"
+                : "text-gray-400 hover:text-white hover:bg-white/10"
+            )}
+            title={smartTVMode ? "일반 오디오 모드로 전환 (현재: Smart TV 48kHz)" : "Smart TV 오디오 모드 (노이즈 제거용 48kHz)"}
+            data-testid="button-smart-tv-audio"
+          >
+            <Tv size={20} />
+            {smartTVMode && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-cyan-500 rounded-full" />
             )}
           </button>
 
