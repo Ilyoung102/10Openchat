@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { User, Bot, Copy, Check, Volume2, VolumeX, FileText, Printer, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { InlineAudioVisualizer } from './audio-visualizer';
 
 interface MessageBubbleProps {
   role: 'user' | 'model' | 'assistant';
@@ -232,13 +233,19 @@ export const MessageBubble = ({
                 <span className="hidden sm:inline">인쇄</span>
               </button>
 
-              {/* Play/Stop Audio */}
-              {onPlayAudio && (
-                <button 
-                  onClick={handlePlayStop}
-                  disabled={isLoadingAudio || (isAnyAudioBusy && !isCurrentlyPlaying)}
-                  className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all ml-auto",
+              {/* Audio Visualizer + Play/Stop Audio - pushed right */}
+              <div className="flex items-center gap-1 ml-auto">
+                <AnimatePresence>
+                  <InlineAudioVisualizer isPlaying={isCurrentlyPlaying} />
+                </AnimatePresence>
+
+                {/* Play/Stop Audio */}
+                {onPlayAudio && (
+                  <button 
+                    onClick={handlePlayStop}
+                    disabled={isLoadingAudio || (isAnyAudioBusy && !isCurrentlyPlaying)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all",
                     isLoadingAudio
                       ? "bg-yellow-500/20 text-yellow-400 cursor-wait"
                       : isCurrentlyPlaying 
@@ -261,7 +268,8 @@ export const MessageBubble = ({
                     {isLoadingAudio ? '준비 중' : isCurrentlyPlaying ? '정지' : '재생'}
                   </span>
                 </button>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>

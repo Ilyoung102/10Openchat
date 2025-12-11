@@ -113,3 +113,87 @@ export const FloatingAudioVisualizer = ({ isPlaying }: { isPlaying: boolean }) =
     </motion.div>
   );
 };
+
+export const InlineAudioVisualizer = ({ isPlaying }: { isPlaying: boolean }) => {
+  const [levels, setLevels] = useState<number[]>(Array(8).fill(0));
+  const animationRef = useRef<number | null>(null);
+  const dataArrayRef = useRef<Uint8Array | null>(null);
+
+  useEffect(() => {
+    if (!isPlaying) {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+      setLevels(Array(8).fill(0));
+      return;
+    }
+
+    const analyser = audioPlayer.getAnalyser();
+    if (!analyser) return;
+
+    if (!dataArrayRef.current) {
+      dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
+    }
+
+    const updateLevels = () => {
+      if (!analyser || !dataArrayRef.current) return;
+      
+      analyser.getByteFrequencyData(dataArrayRef.current);
+      
+      const newLevels: number[] = [];
+      const step = Math.floor(dataArrayRef.current.length / 8);
+      
+      for (let i = 0; i < 8; i++) {
+        const start = i * step;
+        let sum = 0;
+        for (let j = start; j < start + step && j < dataArrayRef.current.length; j++) {
+          sum += dataArrayRef.current[j];
+        }
+        const avg = sum / step;
+        newLevels.push(Math.min(100, (avg / 255) * 100));
+      }
+      
+      setLevels(newLevels);
+      animationRef.current = requestAnimationFrame(updateLevels);
+    };
+
+    animationRef.current = requestAnimationFrame(updateLevels);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, [isPlaying]);
+
+  if (!isPlaying) return null;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, width: 0 }}
+      animate={{ opacity: 1, width: 'auto' }}
+      exit={{ opacity: 0, width: 0 }}
+      className="flex items-end justify-center gap-[2px] h-5 px-2 py-1 bg-primary/20 rounded-lg overflow-hidden"
+      data-testid="inline-audio-visualizer"
+    >
+      {levels.map((level, i) => (
+        <motion.div
+          key={i}
+          className="w-1 rounded-full bg-gradient-to-t from-primary via-cyan-400 to-white"
+          style={{
+            height: `${Math.max(3, level * 0.15)}px`,
+          }}
+          animate={{
+            height: `${Math.max(3, level * 0.15)}px`,
+          }}
+          transition={{
+            duration: 0.05,
+            ease: "linear"
+          }}
+        />
+      ))}
+    </motion.div>
+  );
+};
