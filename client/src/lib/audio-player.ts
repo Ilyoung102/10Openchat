@@ -4,6 +4,7 @@ export type AudioMode = 'normal' | 'smarttv';
 
 export class AudioPlayer {
   private audioContext: AudioContext | null = null;
+  private analyser: AnalyserNode | null = null;
   private queue: ArrayBuffer[] = [];
   private isPlaying: boolean = false;
   private currentSource: AudioBufferSourceNode | null = null;
@@ -26,13 +27,25 @@ export class AudioPlayer {
             this.audioContext = new AudioContextClass();
             console.log('[AudioPlayer] Normal mode: AudioContext at default rate');
           }
-          console.log('[AudioPlayer] Actual sample rate:', this.audioContext.sampleRate);
         } catch (e) {
           console.error('[AudioPlayer] Failed to create AudioContext with options, using default:', e);
           this.audioContext = new AudioContextClass();
         }
+        
+        // Create analyser for visualization (always, after context is created)
+        if (this.audioContext) {
+          console.log('[AudioPlayer] Actual sample rate:', this.audioContext.sampleRate);
+          this.analyser = this.audioContext.createAnalyser();
+          this.analyser.fftSize = 64;
+          this.analyser.smoothingTimeConstant = 0.8;
+          console.log('[AudioPlayer] Analyser created for visualization');
+        }
       }
     }
+  }
+
+  getAnalyser(): AnalyserNode | null {
+    return this.analyser;
   }
 
   setMode(newMode: AudioMode) {
@@ -101,7 +114,14 @@ export class AudioPlayer {
       
       const source = this.audioContext.createBufferSource();
       source.buffer = audioBuffer;
-      source.connect(this.audioContext.destination);
+      
+      // Connect through analyser for visualization
+      if (this.analyser) {
+        source.connect(this.analyser);
+        this.analyser.connect(this.audioContext.destination);
+      } else {
+        source.connect(this.audioContext.destination);
+      }
       
       this.currentSource = source;
       

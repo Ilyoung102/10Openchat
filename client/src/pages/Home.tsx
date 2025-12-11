@@ -4,6 +4,7 @@ import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, Cloud
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
+import { FloatingAudioVisualizer } from '@/components/chat/audio-visualizer';
 import { ChatMessage, streamOpenAIResponse, checkApiKey, saveApiKey, getModel, saveModel, generateSpeech } from '@/lib/openai';
 import { SERVICE_DATA, ServiceItem } from '@/lib/prompts';
 import { audioPlayer } from '@/lib/audio-player';
@@ -1049,6 +1050,11 @@ export default function Home() {
                 </div>
               </motion.div>
             )}
+          </AnimatePresence>
+
+          {/* Audio Visualizer */}
+          <AnimatePresence>
+            <FloatingAudioVisualizer isPlaying={isTTSPlaying} />
           </AnimatePresence>
 
           {/* Chat Input */}
