@@ -447,12 +447,14 @@ export const useWhisperRecognition = ({
     setIsPausedForTTS(false);
 
     try {
-      addDebugLog('Requesting mic...');
+      addDebugLog('Requesting mic (16kHz mono)...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
+          channelCount: 1,
+          sampleRate: 16000,
         } 
       });
       
@@ -460,7 +462,8 @@ export const useWhisperRecognition = ({
       const track = stream.getAudioTracks()[0];
       if (track) {
         const settings = track.getSettings();
-        addDebugLog(`Track: ${track.label?.substring(0,20) || 'default'}`);
+        addDebugLog(`Track: ${settings.channelCount || '?'}ch, ${settings.sampleRate || '?'}Hz`);
+        addDebugLog(`Label: ${track.label?.substring(0,25) || 'default'}`);
         
         // Check MediaRecorder support
         const supportedTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
