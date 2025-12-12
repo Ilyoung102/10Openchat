@@ -199,7 +199,7 @@ export const MessageBubble = ({
               <button 
                 onClick={handleCopy}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all",
+                  "p-2 rounded-lg transition-all",
                   copied 
                     ? "bg-green-500/20 text-green-400" 
                     : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
@@ -208,29 +208,26 @@ export const MessageBubble = ({
                 data-testid="button-copy-message"
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
-                <span className="hidden sm:inline">{copied ? '복사됨' : '복사'}</span>
               </button>
 
               {/* Save TXT */}
               <button 
                 onClick={handleSaveTxt}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                className="p-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all"
                 title="TXT 저장"
                 data-testid="button-save-txt"
               >
                 <FileText size={14} />
-                <span className="hidden sm:inline">TXT</span>
               </button>
 
               {/* Print PDF */}
               <button 
                 onClick={handlePrint}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                className="p-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all"
                 title="인쇄/PDF"
                 data-testid="button-print-pdf"
               >
                 <Printer size={14} />
-                <span className="hidden sm:inline">인쇄</span>
               </button>
 
               {/* Audio Visualizer + Play/Stop Audio - pushed right */}
@@ -245,29 +242,26 @@ export const MessageBubble = ({
                     onClick={handlePlayStop}
                     disabled={isLoadingAudio || (isAnyAudioBusy && !isCurrentlyPlaying)}
                     className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all",
-                    isLoadingAudio
-                      ? "bg-yellow-500/20 text-yellow-400 cursor-wait"
-                      : isCurrentlyPlaying 
-                        ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
-                        : isAnyAudioBusy
-                          ? "bg-gray-500/20 text-gray-500 cursor-not-allowed"
-                          : "bg-primary/20 text-primary hover:bg-primary/30"
-                  )}
-                  title={isLoadingAudio ? "준비 중..." : isCurrentlyPlaying ? "정지" : isAnyAudioBusy ? "다른 음성 재생 중" : "음성 재생"}
-                  data-testid="button-play-audio"
-                >
-                  {isLoadingAudio ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : isCurrentlyPlaying ? (
-                    <VolumeX size={14} />
-                  ) : (
-                    <Volume2 size={14} />
-                  )}
-                  <span className="hidden sm:inline">
-                    {isLoadingAudio ? '준비 중' : isCurrentlyPlaying ? '정지' : '재생'}
-                  </span>
-                </button>
+                      "p-2 rounded-lg transition-all",
+                      isLoadingAudio
+                        ? "bg-yellow-500/20 text-yellow-400 cursor-wait"
+                        : isCurrentlyPlaying 
+                          ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+                          : isAnyAudioBusy
+                            ? "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+                            : "bg-primary/20 text-primary hover:bg-primary/30"
+                    )}
+                    title={isLoadingAudio ? "준비 중..." : isCurrentlyPlaying ? "정지" : isAnyAudioBusy ? "다른 음성 재생 중" : "음성 재생"}
+                    data-testid="button-play-audio"
+                  >
+                    {isLoadingAudio ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : isCurrentlyPlaying ? (
+                      <VolumeX size={14} />
+                    ) : (
+                      <Volume2 size={14} />
+                    )}
+                  </button>
                 )}
               </div>
             </div>
