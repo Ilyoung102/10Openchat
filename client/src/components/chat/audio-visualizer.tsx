@@ -175,18 +175,18 @@ export const InlineAudioVisualizer = ({ isPlaying }: { isPlaying: boolean }) => 
       initial={{ opacity: 0, width: 0 }}
       animate={{ opacity: 1, width: 'auto' }}
       exit={{ opacity: 0, width: 0 }}
-      className="flex items-end justify-center gap-[2px] h-5 px-2 py-1 bg-primary/20 rounded-lg overflow-hidden"
+      className="flex items-end justify-center gap-[3px] h-8 px-3 py-1.5 bg-primary/20 rounded-lg overflow-hidden"
       data-testid="inline-audio-visualizer"
     >
       {levels.map((level, i) => (
         <motion.div
           key={i}
-          className="w-1 rounded-full bg-gradient-to-t from-primary via-cyan-400 to-white"
+          className="w-1.5 rounded-full bg-gradient-to-t from-primary via-cyan-400 to-white"
           style={{
-            height: `${Math.max(3, level * 0.15)}px`,
+            height: `${Math.max(4, level * 0.25)}px`,
           }}
           animate={{
-            height: `${Math.max(3, level * 0.15)}px`,
+            height: `${Math.max(4, level * 0.25)}px`,
           }}
           transition={{
             duration: 0.05,
