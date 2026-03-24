@@ -1,6 +1,8 @@
-import { app, httpServer } from "./app";
+import { app } from "./app";
+import { createServer } from "http";
 
 const port = parseInt(process.env.PORT || "5000", 10);
+const httpServer = createServer(app);
 
 if (process.env.NODE_ENV !== "production") {
   (async () => {

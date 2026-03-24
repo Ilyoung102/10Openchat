@@ -3,15 +3,14 @@ import { createServer, type Server } from "http";
 import OpenAI from "openai";
 import { Readable } from "stream";
 import multer from "multer";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
 
 // Handle Node.js version differences for File constructor (needed for OpenAI audio)
 const getFileConstructor = () => {
   if (typeof File !== 'undefined') return File;
   try {
-    const { File: NodeFile } = require('node:buffer');
-    return NodeFile;
+    // In Node.js environment, try to use Global if available
+    // Otherwise fallback safely. The OpenAI SDK in Node 20+ uses the global File.
+    return null; 
   } catch (e) {
     return null;
   }
@@ -78,7 +77,6 @@ const webSearchTool: OpenAI.Chat.Completions.ChatCompletionTool = {
 };
 
 export function registerRoutes(
-  httpServer: Server,
   app: Express
 ) {
   const getApiKey = (req: any) => {
@@ -433,5 +431,4 @@ export function registerRoutes(
     }
   });
 
-  return httpServer;
 }

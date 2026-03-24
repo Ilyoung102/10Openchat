@@ -1,10 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
-import { createServer } from "http";
 
 const app = express();
-const httpServer = createServer(app);
 
 app.use(
   express.json({
@@ -42,8 +40,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Setup routes and services
-registerRoutes(httpServer, app);
+// Setup routes
+registerRoutes(app);
 
 // Global Error Handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -57,4 +55,4 @@ if (process.env.NODE_ENV === "production" && process.env.VERCEL !== "1") {
   serveStatic(app);
 }
 
-export { app, httpServer };
+export { app };
