@@ -4,7 +4,7 @@ const app = express();
 
 // Root-level diagnostics
 app.get("/api/ping", (req, res) => {
-  res.json({ pong: true, time: new Date().toISOString(), version: "v1.66" });
+  res.json({ pong: true, time: new Date().toISOString(), version: "v1.68" });
 });
 
 app.get("/api/env", (req, res) => {
@@ -21,7 +21,7 @@ app.all("/api/*", async (req, res) => {
     // Attempting import with and without extension to ensure compatibility
     let mainAppModule;
     try {
-      mainAppModule = await import("../server/app");
+      mainAppModule = await import("../server/app.js");
     } catch (e1) {
       console.warn("Retrying import with .js extension...");
       mainAppModule = await import("../server/app.js");
