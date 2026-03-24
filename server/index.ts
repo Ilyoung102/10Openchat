@@ -59,27 +59,26 @@ app.use((req, res, next) => {
   next();
 });
 
-const startServer = async () => {
+const setupApp = async () => {
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     res.status(status).json({ message });
-    throw err;
   });
 
-  if (process.env.NODE_ENV === "production") {
+  // Skip static serving on Vercel as it's handled by Vercel's static layer
+  if (process.env.NODE_ENV === "production" && process.env.VERCEL !== "1") {
     serveStatic(app);
-  } else {
+  } else if (process.env.NODE_ENV !== "production") {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
 
   const port = parseInt(process.env.PORT || "5000", 10);
   
-  // Only start listening if this file is run directly (not as a module on Vercel)
+  // Skip listening on Vercel
   if (process.env.VERCEL !== "1") {
     httpServer.listen(
       {
@@ -93,7 +92,11 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// Start setup but don't block export
+setupApp().catch(err => {
+  console.error("Failed to setup app:", err);
+});
 
 export default app;
+
 
