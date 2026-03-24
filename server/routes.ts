@@ -72,9 +72,23 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  
+  const getApiKey = (req: any) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const key = authHeader.substring(7);
+      if (key && key !== "undefined" && key !== "null") return key;
+    }
+    return process.env.OPENAI_API_KEY;
+  };
+
   app.post("/api/chat/stream", async (req, res) => {
     try {
+      const apiKey = getApiKey(req);
+      if (!apiKey) {
+        return res.status(401).json({ error: "OpenAI API Key is required. Please set it in Settings." });
+      }
+
+      const openai = new OpenAI({ apiKey });
       const { messages, model = "gpt-4o-mini", conversationMode = false } = req.body as {
         messages: ChatMessage[];
         model?: string;
@@ -86,8 +100,8 @@ export async function registerRoutes(
       }
 
       const MAX_HISTORY_MESSAGES = 10;
-      const limitedMessages = messages.length > MAX_HISTORY_MESSAGES 
-        ? messages.slice(-MAX_HISTORY_MESSAGES) 
+      const limitedMessages = messages.length > MAX_HISTORY_MESSAGES
+        ? messages.slice(-MAX_HISTORY_MESSAGES)
         : messages;
 
       res.setHeader("Content-Type", "text/event-stream");
@@ -95,13 +109,13 @@ export async function registerRoutes(
       res.setHeader("Connection", "keep-alive");
       res.setHeader("X-Accel-Buffering", "no");
 
-      const currentDate = new Date().toLocaleDateString('ko-KR', { 
-        year: 'numeric', 
-        month: 'long', 
+      const currentDate = new Date().toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
         day: 'numeric',
         weekday: 'long'
       });
-      
+
       let systemContent = `You are MAZI Service, a futuristic, advanced AI companion with real-time web search capabilities. You are helpful, precise, and have a slight cyberpunk personality.
 
 **현재 날짜: ${currentDate}**
@@ -188,7 +202,7 @@ export async function registerRoutes(
         if (chunk.choices[0]?.finish_reason === "tool_calls") {
           // Process all tool calls
           const webSearchCalls = Array.from(toolCalls.values()).filter(tc => tc.name === "web_search");
-          
+
           if (webSearchCalls.length > 0) {
             try {
               // Execute all web searches in parallel
@@ -267,6 +281,12 @@ export async function registerRoutes(
 
   app.post("/api/tts", async (req, res) => {
     try {
+      const apiKey = getApiKey(req);
+      if (!apiKey) {
+        return res.status(401).json({ error: "OpenAI API Key is required for TTS." });
+      }
+
+      const openai = new OpenAI({ apiKey });
       const { text, voice = "alloy", speed = 1.0, repeatEnglish = false } = req.body;
 
       if (!text) {
@@ -274,13 +294,13 @@ export async function registerRoutes(
       }
 
       let processedText = text;
-      
+
       // For English learning: extract English sentences and repeat each 3 times
       if (repeatEnglish) {
         // Extract English sentences (text between ** markers or starting with A:/B:)
         const englishPattern = /\*\*([^*]+)\*\*/g;
         const matches = [...text.matchAll(englishPattern)];
-        
+
         if (matches.length > 0) {
           // Build TTS text with only English sentences repeated 3 times each
           const englishSentences = matches.map(m => m[1].trim());
@@ -328,7 +348,7 @@ export async function registerRoutes(
   });
 
   // Whisper transcription endpoint for Smart TV (MediaRecorder fallback)
-  const upload = multer({ 
+  const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit
   });
@@ -336,6 +356,12 @@ export async function registerRoutes(
   app.post("/api/transcribe", upload.single('audio'), async (req, res) => {
     console.log('[Transcribe] Request received');
     try {
+      const apiKey = getApiKey(req);
+      if (!apiKey) {
+        return res.status(401).json({ error: "OpenAI API Key is required for transcription." });
+      }
+
+      const openai = new OpenAI({ apiKey });
       if (!req.file) {
         console.log('[Transcribe] No audio file in request');
         return res.status(400).json({ error: "Audio file is required" });
@@ -344,7 +370,7 @@ export async function registerRoutes(
       const audioBuffer = req.file.buffer;
       const mimeType = req.file.mimetype || 'audio/webm';
       console.log(`[Transcribe] Audio received: ${audioBuffer.length} bytes, type: ${mimeType}`);
-      
+
       // Determine file extension from mime type
       let extension = 'webm';
       if (mimeType.includes('mp4')) extension = 'mp4';
@@ -353,7 +379,7 @@ export async function registerRoutes(
       else if (mimeType.includes('ogg')) extension = 'ogg';
 
       // Create a File object for OpenAI API
-      const file = new File([audioBuffer], `audio.${extension}`, { type: mimeType });
+      const file = new File([new Uint8Array(audioBuffer)], `audio.${extension}`, { type: mimeType });
 
       const transcription = await openai.audio.transcriptions.create({
         file: file,
@@ -362,16 +388,17 @@ export async function registerRoutes(
         response_format: "json",
       });
 
+
       console.log(`[Transcribe] Success: "${transcription.text}"`);
-      res.json({ 
+      res.json({
         text: transcription.text,
-        success: true 
+        success: true
       });
     } catch (error: any) {
       console.error("Transcription error:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: error.message,
-        success: false 
+        success: false
       });
     }
   });

@@ -15,11 +15,16 @@ export const saveModel = (model: string) => {
   localStorage.setItem("OPENAI_MODEL", model);
 };
 
+export const getApiKey = () => {
+  return localStorage.getItem("OPENAI_API_KEY") || "";
+};
+
 export const checkApiKey = () => {
-  return true;
+  return !!getApiKey();
 };
 
 export const saveApiKey = (key: string) => {
+  localStorage.setItem("OPENAI_API_KEY", key);
 };
 
 export const streamOpenAIResponse = async (
@@ -30,6 +35,7 @@ export const streamOpenAIResponse = async (
   conversationMode?: boolean
 ) => {
   const model = getModel();
+  const apiKey = getApiKey();
 
   const validHistory = history
     .filter(msg => !msg.isError && msg.id !== 'welcome')
@@ -47,6 +53,7 @@ export const streamOpenAIResponse = async (
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
     },
     body: JSON.stringify({ messages, model, conversationMode }),
   });
@@ -106,10 +113,12 @@ export const generateSpeech = async (
   text: string, 
   options?: { repeatEnglish?: boolean; speed?: number }
 ): Promise<ArrayBuffer> => {
+  const apiKey = getApiKey();
   const response = await fetch("/api/tts", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
     },
     body: JSON.stringify({ 
       text, 
@@ -128,10 +137,12 @@ export const generateSpeech = async (
 };
 
 export const searchWeb = async (query: string) => {
+  const apiKey = getApiKey();
   const response = await fetch("/api/search", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
     },
     body: JSON.stringify({ query }),
   });
@@ -143,3 +154,4 @@ export const searchWeb = async (query: string) => {
 
   return response.json();
 };
+
