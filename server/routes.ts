@@ -3,6 +3,19 @@ import { createServer, type Server } from "http";
 import OpenAI from "openai";
 import { Readable } from "stream";
 import multer from "multer";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
+// Handle Node.js version differences for File constructor (needed for OpenAI audio)
+const getFileConstructor = () => {
+  if (typeof File !== 'undefined') return File;
+  try {
+    const { File: NodeFile } = require('node:buffer');
+    return NodeFile;
+  } catch (e) {
+    return null;
+  }
+};
 
 const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
@@ -76,6 +89,20 @@ export function registerRoutes(
     }
     return process.env.OPENAI_API_KEY;
   };
+
+  // Diagnostic Endpoint
+  app.get("/api/health", (req, res) => {
+    res.json({ 
+      status: "ok", 
+      time: new Date().toISOString(),
+      env: {
+        nodeVersion: process.version,
+        hasOpenAiKey: !!process.env.OPENAI_API_KEY,
+        hasTavilyKey: !!process.env.TAVILY_API_KEY,
+        vercel: process.env.VERCEL || "0"
+      }
+    });
+  });
 
   app.post("/api/chat/stream", async (req, res) => {
     try {
@@ -374,8 +401,12 @@ export function registerRoutes(
       else if (mimeType.includes('wav')) extension = 'wav';
       else if (mimeType.includes('ogg')) extension = 'ogg';
 
-      // Create a File object for OpenAI API
-      const file = new File([new Uint8Array(audioBuffer)], `audio.${extension}`, { type: mimeType });
+      // Create a File object for OpenAI API using the safest constructor available
+      const SafeFile = getFileConstructor();
+      if (!SafeFile) {
+        throw new Error("File constructor not found in this Node.js environment.");
+      }
+      const file = new SafeFile([new Uint8Array(audioBuffer)], `audio.${extension}`, { type: mimeType });
 
       const transcription = await openai.audio.transcriptions.create({
         file: file,
