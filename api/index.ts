@@ -1,19 +1,23 @@
 import express from 'express';
-import { app as mainApp } from "../server/app";
 
-const diagnosticApp = express();
+const app = express();
 
-// Root-level diagnostic endpoint that doesn't rely on the main app's initialization
-diagnosticApp.get("/api/ping", (req, res) => {
+app.get("/api/ping", (req, res) => {
   res.json({ 
-    pong: true, 
-    time: new Date().toISOString(), 
-    vercel: process.env.VERCEL,
-    nodeVersion: process.version
+    message: "PING OK - STANDALONE", 
+    time: new Date().toISOString(),
+    vercel: process.env.VERCEL || "0",
+    node: process.version
   });
 });
 
-// Use the main app for everything else
-diagnosticApp.use(mainApp);
+// Fallback for other API calls during isolation test
+app.all("/api/*", (req, res) => {
+  res.status(200).json({ 
+    message: "ISOLATION TEST ACTIVE", 
+    path: req.path,
+    method: req.method
+  });
+});
 
-export default diagnosticApp;
+export default app;
