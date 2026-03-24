@@ -4,10 +4,6 @@ import OpenAI from "openai";
 import { Readable } from "stream";
 import multer from "multer";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
 interface ChatMessage {
