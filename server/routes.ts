@@ -68,10 +68,10 @@ const webSearchTool: OpenAI.Chat.Completions.ChatCompletionTool = {
   },
 };
 
-export async function registerRoutes(
+export function registerRoutes(
   httpServer: Server,
   app: Express
-): Promise<Server> {
+) {
   const getApiKey = (req: any) => {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {

@@ -59,8 +59,8 @@ app.use((req, res, next) => {
   next();
 });
 
-const setupApp = async () => {
-  await registerRoutes(httpServer, app);
+const setupApp = () => {
+  registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -72,8 +72,10 @@ const setupApp = async () => {
   if (process.env.NODE_ENV === "production" && process.env.VERCEL !== "1") {
     serveStatic(app);
   } else if (process.env.NODE_ENV !== "production") {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
+    // Vite setup is still async but only used in dev
+    import("./vite").then(({ setupVite }) => {
+      setupVite(httpServer, app);
+    });
   }
 
   const port = parseInt(process.env.PORT || "5000", 10);
@@ -92,11 +94,9 @@ const setupApp = async () => {
   }
 };
 
-// Start setup but don't block export
-setupApp().catch(err => {
-  console.error("Failed to setup app:", err);
-});
+setupApp();
 
 export default app;
+
 
 
