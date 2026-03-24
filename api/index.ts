@@ -7,25 +7,30 @@ app.get("/api/ping", (req, res) => {
   res.json({ 
     pong: true, 
     time: new Date().toISOString(),
-    version: "v1.61"
+    version: "v1.62",
+    status: "Service is partially operational"
   });
 });
 
 app.get("/api/env", (req, res) => {
+  const hasOpenAI = !!process.env.OPENAI_API_KEY;
+  const hasTavily = !!process.env.TAVILY_API_KEY;
+  
   res.json({ 
     NODE_ENV: process.env.NODE_ENV,
     VERCEL: process.env.VERCEL,
-    HAS_OPENAI: !!process.env.OPENAI_API_KEY,
-    HAS_TAVILY: !!process.env.TAVILY_API_KEY,
-    node: process.version
+    OPENAI_KEY_PRESENT: hasOpenAI,
+    TAVILY_KEY_PRESENT: hasTavily,
+    node: process.version,
+    instruction: (!hasOpenAI || !hasTavily) 
+      ? "Please set OPENAI_API_KEY and TAVILY_API_KEY in Vercel Dashboard -> Environment Variables" 
+      : "Environment variables are configured correctly."
   });
 });
 
 // Dynamic import for the main app to catch startup errors
 app.all("/api/*", async (req, res) => {
   try {
-    // Note: On Vercel, we need to import from the compiled JS or the TS source correctly.
-    // Since Vercel handles TS, we import the .ts file but bundlers often prefer .js or no extension.
     const { app: mainApp } = await import("../server/app");
     return mainApp(req, res);
   } catch (e: any) {
@@ -34,7 +39,10 @@ app.all("/api/*", async (req, res) => {
       error: "BOOTSTRAP_ERROR", 
       message: e.message, 
       stack: e.stack,
-      hint: "This error occurs during the import of the main application logic."
+      env_status: {
+        hasOpenAi: !!process.env.OPENAI_API_KEY,
+        hasTavily: !!process.env.TAVILY_API_KEY
+      }
     });
   }
 });
