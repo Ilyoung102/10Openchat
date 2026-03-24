@@ -123,15 +123,19 @@ export function registerRoutes(
         return res.status(400).json({ error: "Messages array is required" });
       }
 
+      // Initial ping to confirm the connection is active and headers are working
+      res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no");
+      
+      // Send immediate keep-alive/ping
+      res.write(`data: ${JSON.stringify({ type: "ping" })}\n\n`);
+
       const MAX_HISTORY_MESSAGES = 10;
       const limitedMessages = messages.length > MAX_HISTORY_MESSAGES
         ? messages.slice(-MAX_HISTORY_MESSAGES)
         : messages;
-
-      res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Connection", "keep-alive");
-      res.setHeader("X-Accel-Buffering", "no");
 
       const currentDate = new Date().toLocaleDateString('ko-KR', {
         year: 'numeric',
