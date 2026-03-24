@@ -1,23 +1,41 @@
 import express from 'express';
-import { app as mainApp } from "../server/app";
 
 const app = express();
 
-// Diagnostic Endpoints (at the top to ensure they always work)
+const maskKey = (key: string | undefined) => {
+  if (!key) return "MISSING";
+  if (key.length < 10) return "PRESENT (TOO SHORT)";
+  return `${key.substring(0, 7)}...${key.substring(key.length - 4)}`;
+};
+
+// Root-level diagnostics
 app.get("/api/ping", (req, res) => {
-  res.json({ pong: true, version: "v1.64", env: process.env.VERCEL ? "vercel" : "local" });
+  res.json({ pong: true, time: new Date().toISOString(), version: "v1.65" });
 });
 
 app.get("/api/env", (req, res) => {
   res.json({ 
     NODE_ENV: process.env.NODE_ENV,
-    HAS_OPENAI: !!process.env.OPENAI_API_KEY,
-    HAS_TAVILY: !!process.env.TAVILY_API_KEY,
+    VERCEL: process.env.VERCEL,
+    SERVER_OPENAI_KEY: maskKey(process.env.OPENAI_API_KEY),
+    SERVER_TAVILY_KEY: maskKey(process.env.TAVILY_API_KEY),
     node: process.version
   });
 });
 
-// Use the main app instance for all routes (including /api/*)
-app.use(mainApp);
+// Dynamic import for the main app to catch startup errors
+app.all("/api/*", async (req, res) => {
+  try {
+    const { app: mainApp } = await import("../server/app");
+    return mainApp(req, res);
+  } catch (e: any) {
+    console.error("Bootstrap Error:", e);
+    return res.status(500).json({ 
+      error: "BOOTSTRAP_ERROR", 
+      message: e.message, 
+      stack: e.stack 
+    });
+  }
+});
 
 export default app;
