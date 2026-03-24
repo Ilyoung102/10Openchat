@@ -108,6 +108,7 @@ export function registerRoutes(
     try {
       const apiKey = getApiKey(req);
       if (!apiKey) {
+        console.warn("[ChatStream] No API key provided");
         return res.status(401).json({ error: "OpenAI API Key is required. Please set it in Settings." });
       }
 
@@ -117,6 +118,8 @@ export function registerRoutes(
         model?: string;
         conversationMode?: boolean;
       };
+
+      console.log(`[ChatStream] Starting stream for model: ${model}, key length: ${apiKey.length}`);
 
       if (!messages || !Array.isArray(messages)) {
         return res.status(400).json({ error: "Messages array is required" });
