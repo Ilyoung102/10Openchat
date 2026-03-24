@@ -59,8 +59,9 @@ export const streamOpenAIResponse = async (
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to get response");
+    const errorData = await response.json();
+    const errorMsg = errorData.message || errorData.error || "Failed to get response";
+    throw new Error(errorMsg);
   }
 
   const reader = response.body?.getReader();
