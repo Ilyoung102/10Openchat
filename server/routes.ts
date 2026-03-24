@@ -82,7 +82,7 @@ export function registerRoutes(
   const getApiKey = (req: any) => {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
-      const key = authHeader.substring(7);
+      const key = authHeader.substring(7).trim();
       if (key && key !== "undefined" && key !== "null") return key;
     }
     return process.env.OPENAI_API_KEY;
@@ -105,12 +105,21 @@ export function registerRoutes(
   app.post("/api/chat/stream", async (req, res) => {
     try {
       const apiKey = getApiKey(req);
-      if (!apiKey) {
+      if (!apiKey || apiKey === "") {
         console.warn("[ChatStream] No API key provided");
-        return res.status(401).json({ error: "OpenAI API Key is required. Please set it in Settings." });
+        return res.status(401).json({ 
+          error: "API_KEY_REQUIRED", 
+          message: "OpenAI API Key가 설정되어 있지 않습니다. 설정 버튼을 눌러 API 키를 입력해 주세요." 
+        });
       }
 
-      const openai = new OpenAI({ apiKey });
+      // Safeguard OpenAI initialization
+      let openai: OpenAI;
+      try {
+        openai = new OpenAI({ apiKey });
+      } catch (err: any) {
+        return res.status(500).json({ error: "OPENAI_INIT_ERROR", message: err.message });
+      }
       const { messages, model = "gpt-4o-mini", conversationMode = false } = req.body as {
         messages: ChatMessage[];
         model?: string;
