@@ -4,7 +4,7 @@ import { Settings, Menu, Plus, Sparkles, Activity, Key, Cpu, ChevronRight, Cloud
 import { ChatInput } from '@/components/chat/chat-interface';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
-import { ChatMessage, streamOpenAIResponse, checkApiKey, saveApiKey, getModel, saveModel, generateSpeech } from '@/lib/openai';
+import { ChatMessage, streamOpenAIResponse, checkApiKey, getApiKey, saveApiKey, getTavilyKey, saveTavilyKey, getModel, saveModel, generateSpeech } from '@/lib/openai';
 import { SERVICE_DATA, ServiceItem } from '@/lib/prompts';
 import { audioPlayer } from '@/lib/audio-player';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.70";
+const APP_VERSION = "v1.71";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
