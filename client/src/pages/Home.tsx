@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.69";
+const APP_VERSION = "v1.70";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -40,6 +40,7 @@ export default function Home() {
   });
   
   const [apiKey, setApiKey] = useState('');
+  const [tavilyKey, setTavilyKey] = useState('');
   const [model, setModel] = useState('gpt-4o');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   
@@ -130,6 +131,8 @@ export default function Home() {
   useEffect(() => {
     // Load saved settings
     setModel(getModel());
+    setApiKey(getApiKey());
+    setTavilyKey(getTavilyKey());
     
     if (!checkApiKey()) {
       setShowSettingsModal(true);
@@ -465,6 +468,9 @@ export default function Home() {
     if (apiKey.trim()) {
       saveApiKey(apiKey);
     }
+    if (tavilyKey.trim()) {
+      saveTavilyKey(tavilyKey);
+    }
     if (model.trim()) {
       saveModel(model);
     }
@@ -523,6 +529,23 @@ export default function Home() {
                     />
                     <p className="text-[10px] text-gray-500 mt-1">
                       Leave blank to keep existing key.
+                    </p>
+                </div>
+
+                <div>
+                    <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
+                       <Sparkles size={12} /> TAVILY API KEY (WEB SEARCH)
+                    </label>
+                    <input 
+                        type="password" 
+                        value={tavilyKey}
+                        onChange={(e) => setTavilyKey(e.target.value)}
+                        placeholder="tvly-..."
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
+                        data-testid="input-tavily-key"
+                    />
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      Required for news, weather, and real-time search.
                     </p>
                 </div>
 

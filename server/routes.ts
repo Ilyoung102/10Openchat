@@ -36,14 +36,15 @@ interface TavilyResponse {
   results: TavilySearchResult[];
 }
 
-async function searchWeb(query: string): Promise<TavilyResponse> {
+async function searchWeb(query: string, apiKey?: string): Promise<TavilyResponse> {
+  const keyToUse = apiKey || TAVILY_API_KEY;
   const response = await fetch("https://api.tavily.com/search", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      api_key: TAVILY_API_KEY,
+      api_key: keyToUse,
       query: query,
       search_depth: "basic",
       include_answer: true,
@@ -88,6 +89,14 @@ export function registerRoutes(
     return process.env.OPENAI_API_KEY;
   };
 
+  const getTavilyKey = (req: any) => {
+    const tavilyHeader = req.headers["x-tavily-key"];
+    if (tavilyHeader && tavilyHeader !== "undefined" && tavilyHeader !== "null" && tavilyHeader !== "") {
+      return tavilyHeader;
+    }
+    return process.env.TAVILY_API_KEY;
+  };
+
   // Diagnostic Endpoint
   app.get("/api/health", (req, res) => {
     res.json({ 
@@ -105,6 +114,7 @@ export function registerRoutes(
   app.post("/api/chat/stream", async (req, res) => {
     try {
       const apiKey = getApiKey(req);
+      const tavilyKey = getTavilyKey(req);
       if (!apiKey || apiKey === "") {
         console.warn("[ChatStream] No API key provided");
         return res.status(401).json({ 
@@ -246,7 +256,7 @@ export function registerRoutes(
               const searchPromises = webSearchCalls.map(async (tc) => {
                 const args = JSON.parse(tc.arguments.trim());
                 res.write(`data: ${JSON.stringify({ type: "searching", query: args.query })}\n\n`);
-                const results = await searchWeb(args.query);
+                const results = await searchWeb(args.query, tavilyKey);
                 return { tc, results, args };
               });
 
@@ -298,6 +308,11 @@ export function registerRoutes(
               }
             } catch (toolError: any) {
               console.error("Tool call error:", toolError.message);
+              let errorMsg = toolError.message;
+              if (errorMsg.includes("Tavily API error") || errorMsg.includes("api_key")) {
+                errorMsg = "웹 검색 엔진(Tavily) 키가 올바르지 않거나 설정되지 않았습니다. 설정에서 Tavily API Key를 확인해 주세요.";
+              }
+              res.write(`data: ${JSON.stringify({ type: "content", content: `\n\n**[시스템 알림]** ${errorMsg}\n\n` })}\n\n`);
             }
           }
         }
@@ -371,12 +386,11 @@ export function registerRoutes(
   app.post("/api/search", async (req, res) => {
     try {
       const { query } = req.body;
-
       if (!query) {
         return res.status(400).json({ error: "Query is required" });
       }
-
-      const results = await searchWeb(query);
+      const tavilyKey = getTavilyKey(req);
+      const results = await searchWeb(query, tavilyKey);
       res.json(results);
     } catch (error: any) {
       console.error("Search error:", error);

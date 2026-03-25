@@ -27,6 +27,14 @@ export const saveApiKey = (key: string) => {
   localStorage.setItem("OPENAI_API_KEY", key);
 };
 
+export const getTavilyKey = () => {
+  return localStorage.getItem("TAVILY_API_KEY") || "";
+};
+
+export const saveTavilyKey = (key: string) => {
+  localStorage.setItem("TAVILY_API_KEY", key);
+};
+
 export const streamOpenAIResponse = async (
   history: ChatMessage[],
   newMessage: string,
@@ -54,6 +62,7 @@ export const streamOpenAIResponse = async (
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${apiKey}`,
+      "X-Tavily-Key": getTavilyKey(),
     },
     body: JSON.stringify({ messages, model, conversationMode }),
   });
@@ -144,6 +153,7 @@ export const searchWeb = async (query: string) => {
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${apiKey}`,
+      "X-Tavily-Key": getTavilyKey(),
     },
     body: JSON.stringify({ query }),
   });
