@@ -12,7 +12,7 @@ import generatedImage from '@assets/generated_images/futuristic_abstract_ai_core
 import { ChatSession } from '@/types';
 
 // App Version - 코드 수정 시 반드시 +0.01 업데이트
-const APP_VERSION = "v1.71";
+const APP_VERSION = "v1.72";
 
 const SESSIONS_STORAGE_KEY = 'mazi-chat-sessions';
 const CURRENT_SESSION_KEY = 'mazi-current-session';
@@ -38,12 +38,12 @@ export default function Home() {
     }
     return true;
   });
-  
+
   const [apiKey, setApiKey] = useState('');
   const [tavilyKey, setTavilyKey] = useState('');
   const [model, setModel] = useState('gpt-4o');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  
+
   // Service Menu State
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -60,7 +60,7 @@ export default function Home() {
   // Conversation Mode State
   const [conversationMode, setConversationMode] = useState(false);
   const conversationModeRef = useRef(conversationMode);
-  
+
   useEffect(() => {
     conversationModeRef.current = conversationMode;
   }, [conversationMode]);
@@ -133,7 +133,7 @@ export default function Home() {
     setModel(getModel());
     setApiKey(getApiKey());
     setTavilyKey(getTavilyKey());
-    
+
     if (!checkApiKey()) {
       setShowSettingsModal(true);
     }
@@ -151,7 +151,7 @@ export default function Home() {
   useEffect(() => {
     try {
       const savedSessions = localStorage.getItem(SESSIONS_STORAGE_KEY);
-      
+
       if (savedSessions) {
         const parsed = JSON.parse(savedSessions) as ChatSession[];
         setSessions(parsed);
@@ -179,14 +179,14 @@ export default function Home() {
   // Sync messages to current session (including when cleared)
   useEffect(() => {
     if (currentSessionId) {
-      setSessions(prev => prev.map(session => 
-        session.id === currentSessionId 
-          ? { 
-              ...session, 
-              messages, 
-              title: messages.length > 0 ? generateSessionTitle(messages) : '새 대화',
-              updatedAt: Date.now() 
-            }
+      setSessions(prev => prev.map(session =>
+        session.id === currentSessionId
+          ? {
+            ...session,
+            messages,
+            title: messages.length > 0 ? generateSessionTitle(messages) : '새 대화',
+            updatedAt: Date.now()
+          }
           : session
       ));
     }
@@ -224,7 +224,7 @@ export default function Home() {
       };
       setSessions(prev => [newSession, ...prev]);
     }
-    
+
     // Clear messages and start fresh
     setMessages([]);
     setCurrentSessionId(null);
@@ -234,11 +234,11 @@ export default function Home() {
 
   const handleSaveCurrentChat = () => {
     if (messages.length === 0) return;
-    
+
     if (currentSessionId) {
       // Already in a session, just update it
-      setSessions(prev => prev.map(session => 
-        session.id === currentSessionId 
+      setSessions(prev => prev.map(session =>
+        session.id === currentSessionId
           ? { ...session, messages, title: generateSessionTitle(messages), updatedAt: Date.now() }
           : session
       ));
@@ -275,14 +275,14 @@ export default function Home() {
   };
 
   const handleRenameSession = (id: string, newTitle: string) => {
-    setSessions(prev => prev.map(s => 
+    setSessions(prev => prev.map(s =>
       s.id === id ? { ...s, title: newTitle, updatedAt: Date.now() } : s
     ));
     setEditingId(null);
   };
 
   const handleTogglePin = (id: string) => {
-    setSessions(prev => prev.map(s => 
+    setSessions(prev => prev.map(s =>
       s.id === id ? { ...s, pinned: !s.pinned, updatedAt: Date.now() } : s
     ));
     setMenuOpenId(null);
@@ -348,8 +348,8 @@ export default function Home() {
 
   const handleSend = async (text: string, displayText?: string) => {
     if (!checkApiKey()) {
-        setShowSettingsModal(true);
-        return;
+      setShowSettingsModal(true);
+      return;
     }
 
     const userMsg: ChatMessage = {
@@ -384,15 +384,15 @@ export default function Home() {
         text, // Actual prompt to send (not displayText)
         (chunk) => {
           fullResponse += chunk;
-          setMessages(prev => prev.map(msg => 
-            msg.id === botMsgId 
+          setMessages(prev => prev.map(msg =>
+            msg.id === botMsgId
               ? { ...msg, text: msg.text + chunk, isSearching: false }
               : msg
           ));
         },
         (query) => {
-          setMessages(prev => prev.map(msg => 
-            msg.id === botMsgId 
+          setMessages(prev => prev.map(msg =>
+            msg.id === botMsgId
               ? { ...msg, text: `🔍 웹 검색 중: "${query}"...`, isSearching: true }
               : msg
           ));
@@ -429,12 +429,12 @@ export default function Home() {
     try {
       audioPlayer.stop();
       setLoadingAudioMessageId(messageId || null);
-      
+
       // Detect if this is English learning content (has bold English sentences with Korean translations)
-      const isEnglishLearning = /\*\*[A-Za-z].*\*\*/.test(text) && 
+      const isEnglishLearning = /\*\*[A-Za-z].*\*\*/.test(text) &&
         (text.includes('📝') || /[가-힣]{2,}/.test(text));
-      
-      const audioBuffer = await generateSpeech(text, { 
+
+      const audioBuffer = await generateSpeech(text, {
         repeatEnglish: isEnglishLearning,
         speed: 1.0
       });
@@ -460,7 +460,7 @@ export default function Home() {
       handleSend(item.prompt, item.label);
     }
     if (window.innerWidth < 768) {
-        setIsSidebarOpen(false);
+      setIsSidebarOpen(false);
     }
   };
 
@@ -478,7 +478,7 @@ export default function Home() {
   };
 
   const getCategoryIcon = (id: string) => {
-    switch(id) {
+    switch (id) {
       case 'weather_news': return <CloudSun size={16} />;
       case 'cooking': return <Utensils size={16} />;
       case 'health': return <Heart size={16} />;
@@ -493,12 +493,12 @@ export default function Home() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground font-sans selection:bg-primary/30">
-      
+
       {/* Settings Modal */}
       <AnimatePresence>
         {showSettingsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -506,85 +506,85 @@ export default function Home() {
             >
               {/* Decor elements */}
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
-              
+
               <h2 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
                 <Settings className="text-primary" size={20} /> System Configuration
               </h2>
               <p className="text-gray-400 text-sm mb-6 leading-relaxed">
                 Configure your MAZI Service connection settings.
               </p>
-              
+
               <div className="space-y-4">
                 <div>
-                    <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
-                      <Key size={12} /> API KEY
-                    </label>
-                    <input 
-                        type="password" 
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        placeholder={checkApiKey() ? "(Hidden)" : "sk-..."}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
-                        data-testid="input-api-key"
-                    />
-                    <p className="text-[10px] text-gray-500 mt-1">
-                      Leave blank to keep existing key.
-                    </p>
+                  <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
+                    <Key size={12} /> API KEY
+                  </label>
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder={checkApiKey() ? "(Hidden)" : "sk-..."}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
+                    data-testid="input-api-key"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    Leave blank to keep existing key.
+                  </p>
                 </div>
 
                 <div>
-                    <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
-                       <Sparkles size={12} /> TAVILY API KEY (WEB SEARCH)
-                    </label>
-                    <input 
-                        type="password" 
-                        value={tavilyKey}
-                        onChange={(e) => setTavilyKey(e.target.value)}
-                        placeholder="tvly-..."
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
-                        data-testid="input-tavily-key"
-                    />
-                    <p className="text-[10px] text-gray-500 mt-1">
-                      Required for news, weather, and real-time search.
-                    </p>
+                  <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
+                    <Sparkles size={12} /> TAVILY API KEY (WEB SEARCH)
+                  </label>
+                  <input
+                    type="password"
+                    value={tavilyKey}
+                    onChange={(e) => setTavilyKey(e.target.value)}
+                    placeholder="tvly-..."
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
+                    data-testid="input-tavily-key"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    Required for news, weather, and real-time search.
+                  </p>
                 </div>
 
                 <div>
-                    <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
-                      <Cpu size={12} /> CORE MODEL
-                    </label>
-                    <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-primary/10 rounded-lg border border-primary/20">
-                      <span className="text-[10px] text-gray-400">현재:</span>
-                      <span className="text-sm text-primary font-mono font-semibold">{model}</span>
-                    </div>
-                    <input 
-                        type="text" 
-                        value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                        placeholder="gpt-4o"
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
-                        data-testid="input-model"
-                    />
-                    <p className="text-[10px] text-gray-500 mt-1">
-                      gpt-4o, gpt-4-turbo, gpt-5 등 모델 ID 입력
-                    </p>
+                  <label className="text-xs font-mono text-primary mb-1 flex items-center gap-2">
+                    <Cpu size={12} /> CORE MODEL
+                  </label>
+                  <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-[10px] text-gray-400">현재:</span>
+                    <span className="text-sm text-primary font-mono font-semibold">{model}</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    placeholder="gpt-4o"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-mono text-sm transition-all"
+                    data-testid="input-model"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    gpt-4o, gpt-4-turbo, gpt-5 등 모델 ID 입력
+                  </p>
                 </div>
-                
+
                 <div className="flex justify-end gap-3 pt-2">
-                    <button 
+                  <button
                     onClick={() => setShowSettingsModal(false)}
                     className="px-4 py-2 rounded-lg text-gray-400 hover:text-white text-sm transition-colors"
                     data-testid="button-settings-cancel"
-                    >
+                  >
                     Cancel
-                    </button>
-                    <button 
+                  </button>
+                  <button
                     onClick={handleSaveSettings}
                     className="bg-primary text-black font-bold px-6 py-2 rounded-lg hover:bg-cyan-400 transition-colors shadow-lg shadow-primary/20"
                     data-testid="button-settings-save"
-                    >
+                  >
                     Save Configuration
-                    </button>
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -606,10 +606,10 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <motion.aside 
+      <motion.aside
         initial={false}
-        animate={{ 
-          width: isSidebarOpen ? 280 : 0, 
+        animate={{
+          width: isSidebarOpen ? 280 : 0,
           opacity: isSidebarOpen ? 1 : 0,
           x: isSidebarOpen ? 0 : -280
         }}
@@ -631,7 +631,7 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-2 custom-scrollbar">
           {/* New Session Button */}
           <div className="mb-4">
-            <button 
+            <button
               onClick={handleNewSession}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-green-500/40 hover:opacity-90 transition-all group shadow-[0_0_10px_rgba(34,197,94,0.2)]"
               style={{ backgroundColor: '#166534', color: '#ffffff' }}
@@ -655,17 +655,17 @@ export default function Home() {
                 {category.id === 'english' && (
                   <div className="my-1.5 mx-2 border-t border-white/10" />
                 )}
-                <button 
+                <button
                   onClick={() => setActiveCategory(activeCategory === category.id ? null : category.id)}
                   className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-all group hover:bg-white/5"
-                  style={{ 
+                  style={{
                     backgroundColor: activeCategory === category.id ? '#1e3a5f' : 'transparent',
-                    color: activeCategory === category.id ? '#4ade80' : '#d1d5db' 
+                    color: activeCategory === category.id ? '#4ade80' : '#d1d5db'
                   }}
                   data-testid={`button-category-${category.id}`}
                 >
                   <div className="flex items-center gap-2">
-                    <span 
+                    <span
                       className="transition-colors"
                       style={{ color: activeCategory === category.id ? '#4ade80' : '#9ca3af' }}
                     >
@@ -687,7 +687,7 @@ export default function Home() {
             <div className="px-2 py-1 flex items-center justify-between">
               <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">기록</span>
               <div className="flex items-center gap-0.5">
-                <button 
+                <button
                   onClick={handleSaveCurrentChat}
                   disabled={messages.length === 0}
                   className={cn(
@@ -699,7 +699,7 @@ export default function Home() {
                 >
                   <Save size={11} />
                 </button>
-                <button 
+                <button
                   onClick={handleExportSessions}
                   disabled={sessions.length === 0}
                   className={cn(
@@ -711,7 +711,7 @@ export default function Home() {
                 >
                   <Download size={11} />
                 </button>
-                <button 
+                <button
                   onClick={handleImportClick}
                   className="p-1 text-gray-500 hover:text-white hover:bg-white/10 rounded transition-colors"
                   title="불러오기 (Restore)"
@@ -719,12 +719,12 @@ export default function Home() {
                 >
                   <Upload size={11} />
                 </button>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  className="hidden" 
-                  accept=".json" 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept=".json"
                 />
                 <span className="text-[9px] bg-white/10 px-1 py-0.5 rounded ml-0.5 text-gray-400">{sessions.length}</span>
               </div>
@@ -752,9 +752,9 @@ export default function Home() {
                         />
                       </div>
                     ) : (
-                      <div 
+                      <div
                         className="flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors hover:bg-white/5"
-                        style={{ 
+                        style={{
                           backgroundColor: currentSessionId === session.id ? '#1e3a5f' : 'transparent',
                           color: currentSessionId === session.id ? '#4ade80' : '#d1d5db'
                         }}
@@ -770,7 +770,7 @@ export default function Home() {
                           <span className="truncate text-[11px]">{session.title}</span>
                         </div>
 
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setMenuOpenId(menuOpenId === session.id ? null : session.id);
@@ -788,12 +788,12 @@ export default function Home() {
 
                     {/* Context Menu */}
                     {menuOpenId === session.id && (
-                      <div 
+                      <div
                         ref={menuRef}
                         className="absolute right-1 top-7 w-28 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <button 
+                        <button
                           onClick={() => handleTogglePin(session.id)}
                           className="w-full text-left px-2 py-1.5 text-[10px] text-gray-300 hover:bg-[#1e3a5f] hover:text-green-400 flex items-center gap-1.5"
                           data-testid={`button-session-pin-${session.id}`}
@@ -801,7 +801,7 @@ export default function Home() {
                           {session.pinned ? <ArrowUp size={10} className="rotate-180" /> : <ArrowUp size={10} />}
                           {session.pinned ? '고정 해제' : '맨 위로'}
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleStartEdit(session)}
                           className="w-full text-left px-2 py-1.5 text-[10px] text-gray-300 hover:bg-blue-500/20 hover:text-blue-400 flex items-center gap-1.5"
                           data-testid={`button-session-rename-${session.id}`}
@@ -809,7 +809,7 @@ export default function Home() {
                           <Edit2 size={10} />
                           이름 변경
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteSession(session.id)}
                           className="w-full text-left px-2 py-1.5 text-[10px] text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-1.5 border-t border-white/5"
                           data-testid={`button-session-delete-${session.id}`}
@@ -828,60 +828,60 @@ export default function Home() {
 
         <div className="p-4 border-t border-white/5">
           <div className="flex gap-2 mb-2">
-            <button 
-                onClick={handleConversationModeToggle}
-                className={cn(
-                    "flex items-center justify-center gap-2 p-3 rounded-xl transition-colors flex-1 border relative",
-                    conversationMode 
-                        ? "bg-purple-500/20 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.2)]" 
-                        : "border-white/20 bg-white/5 hover:bg-white/10"
-                )}
-                style={{ color: conversationMode ? '#c084fc' : '#9ca3af' }}
-                title={conversationMode ? "대화 모드 끄기" : "대화 모드 켜기"}
-                data-testid="button-conversation-mode-toggle"
+            <button
+              onClick={handleConversationModeToggle}
+              className={cn(
+                "flex items-center justify-center gap-2 p-3 rounded-xl transition-colors flex-1 border relative",
+                conversationMode
+                  ? "bg-purple-500/20 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+                  : "border-white/20 bg-white/5 hover:bg-white/10"
+              )}
+              style={{ color: conversationMode ? '#c084fc' : '#9ca3af' }}
+              title={conversationMode ? "대화 모드 끄기" : "대화 모드 켜기"}
+              data-testid="button-conversation-mode-toggle"
             >
-                <MessageCircle size={18} />
-                <span className="text-xs" style={{ color: conversationMode ? '#c084fc' : '#9ca3af' }}>대화</span>
+              <MessageCircle size={18} />
+              <span className="text-xs" style={{ color: conversationMode ? '#c084fc' : '#9ca3af' }}>대화</span>
             </button>
           </div>
           <div className="flex gap-2">
-            <button 
-                onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
-                className={cn(
-                    "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border relative",
-                    wakeWordEnabled 
-                        ? "bg-green-500/20 border-green-500/40 shadow-[0_0_10px_rgba(34,197,94,0.2)]" 
-                        : "border-white/20 bg-white/5 hover:bg-white/10"
-                )}
-                style={{ color: wakeWordEnabled ? '#4ade80' : '#9ca3af' }}
-                title={wakeWordEnabled ? "웨이크 워드 끄기" : "웨이크 워드 켜기 ('마지야')"}
-                data-testid="button-wake-word-toggle"
+            <button
+              onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
+              className={cn(
+                "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border relative",
+                wakeWordEnabled
+                  ? "bg-green-500/20 border-green-500/40 shadow-[0_0_10px_rgba(34,197,94,0.2)]"
+                  : "border-white/20 bg-white/5 hover:bg-white/10"
+              )}
+              style={{ color: wakeWordEnabled ? '#4ade80' : '#9ca3af' }}
+              title={wakeWordEnabled ? "웨이크 워드 끄기" : "웨이크 워드 켜기 ('마지야')"}
+              data-testid="button-wake-word-toggle"
             >
-                <Radio size={18} />
+              <Radio size={18} />
             </button>
-            <button 
-                onClick={handleTTSToggle}
-                className={cn(
-                    "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border",
-                    isTTSActive 
-                        ? "border-blue-500/40 shadow-[0_0_10px_rgba(59,130,246,0.2)]" 
-                        : "border-white/20 bg-white/5 hover:bg-white/10"
-                )}
-                style={{ 
-                  backgroundColor: isTTSActive ? '#1e3a5f' : undefined,
-                  color: isTTSActive ? '#60a5fa' : '#9ca3af' 
-                }}
-                data-testid="button-tts-toggle"
+            <button
+              onClick={handleTTSToggle}
+              className={cn(
+                "flex items-center justify-center p-3 rounded-xl transition-colors flex-1 border",
+                isTTSActive
+                  ? "border-blue-500/40 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
+                  : "border-white/20 bg-white/5 hover:bg-white/10"
+              )}
+              style={{
+                backgroundColor: isTTSActive ? '#1e3a5f' : undefined,
+                color: isTTSActive ? '#60a5fa' : '#9ca3af'
+              }}
+              data-testid="button-tts-toggle"
             >
-                {isTTSActive ? <Volume2 size={18} /> : <VolumeX size={18} />}
+              {isTTSActive ? <Volume2 size={18} /> : <VolumeX size={18} />}
             </button>
-            <button 
-                onClick={() => setShowSettingsModal(true)}
-                className="flex items-center justify-center p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-colors flex-1 border border-white/20"
-                style={{ color: '#9ca3af' }}
-                data-testid="button-settings"
+            <button
+              onClick={() => setShowSettingsModal(true)}
+              className="flex items-center justify-center p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-colors flex-1 border border-white/20"
+              style={{ color: '#9ca3af' }}
+              data-testid="button-settings"
             >
-                <Settings size={18} />
+              <Settings size={18} />
             </button>
           </div>
         </div>
@@ -891,7 +891,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col h-full relative">
         {/* Mobile Header */}
         <header className="md:hidden h-16 border-b border-white/5 flex items-center justify-between px-4 bg-black/40 backdrop-blur-md z-20">
-          <button 
+          <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="flex items-center gap-3 active:opacity-70 transition-opacity"
             data-testid="button-mobile-menu"
@@ -900,64 +900,64 @@ export default function Home() {
             <span className="font-bold text-xl text-white">MAZI Service <span className="text-primary text-sm font-mono">{APP_VERSION}</span></span>
           </button>
           <div className="flex items-center gap-2">
-             <button 
-                onClick={handleConversationModeToggle}
-                className={cn(
-                    "p-2 rounded-lg transition-colors relative",
-                    conversationMode ? "text-purple-400 bg-purple-500/20" : "text-gray-400"
-                )}
-                title={conversationMode ? "대화 모드 끄기" : "대화 모드 켜기"}
-                data-testid="button-mobile-conversation-mode"
-             >
-                 <MessageCircle size={20} />
-                 {conversationMode && (
-                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-                 )}
-             </button>
-             <button 
-                onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
-                className={cn(
-                    "p-2 rounded-lg transition-colors",
-                    wakeWordEnabled ? "text-green-400" : "text-gray-400"
-                )}
-                title={wakeWordEnabled ? "웨이크 워드 끄기" : "웨이크 워드 켜기 ('마지야')"}
-                data-testid="button-mobile-wake-word-toggle"
-             >
-                 <Radio size={20} />
-             </button>
-             <button 
-                onClick={handleTTSToggle}
-                className={cn(
-                    "p-2 rounded-lg transition-colors",
-                    isTTSActive ? "text-primary" : "text-gray-400"
-                )}
-                data-testid="button-mobile-tts-toggle"
-             >
-                 {isTTSActive ? <Volume2 size={20} /> : <VolumeX size={20} />}
-             </button>
-             <button onClick={() => setShowSettingsModal(true)} data-testid="button-mobile-settings">
-               <Settings size={20} className="text-gray-400" />
-             </button>
+            <button
+              onClick={handleConversationModeToggle}
+              className={cn(
+                "p-2 rounded-lg transition-colors relative",
+                conversationMode ? "text-purple-400 bg-purple-500/20" : "text-gray-400"
+              )}
+              title={conversationMode ? "대화 모드 끄기" : "대화 모드 켜기"}
+              data-testid="button-mobile-conversation-mode"
+            >
+              <MessageCircle size={20} />
+              {conversationMode && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+              )}
+            </button>
+            <button
+              onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                wakeWordEnabled ? "text-green-400" : "text-gray-400"
+              )}
+              title={wakeWordEnabled ? "웨이크 워드 끄기" : "웨이크 워드 켜기 ('마지야')"}
+              data-testid="button-mobile-wake-word-toggle"
+            >
+              <Radio size={20} />
+            </button>
+            <button
+              onClick={handleTTSToggle}
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                isTTSActive ? "text-primary" : "text-gray-400"
+              )}
+              data-testid="button-mobile-tts-toggle"
+            >
+              {isTTSActive ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            </button>
+            <button onClick={() => setShowSettingsModal(true)} data-testid="button-mobile-settings">
+              <Settings size={20} className="text-gray-400" />
+            </button>
           </div>
         </header>
 
         {/* Background Visuals */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-10 mix-blend-screen">
-             <img src={generatedImage} alt="AI Core" className="w-full h-full object-contain animate-pulse-slow" />
-           </div>
-           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-10 mix-blend-screen">
+            <img src={generatedImage} alt="AI Core" className="w-full h-full object-contain animate-pulse-slow" />
+          </div>
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
         </div>
 
         {/* Toggle Sidebar Button & Conversation Mode (Desktop) */}
         <div className="absolute top-4 right-4 z-20 hidden md:flex items-center gap-2">
-          <button 
+          <button
             onClick={handleConversationModeToggle}
             className={cn(
-                "p-2 rounded-lg transition-colors border relative",
-                conversationMode 
-                    ? "text-purple-400 bg-purple-500/20 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.3)]" 
-                    : "text-gray-400 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur border-white/5"
+              "p-2 rounded-lg transition-colors border relative",
+              conversationMode
+                ? "text-purple-400 bg-purple-500/20 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.3)]"
+                : "text-gray-400 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur border-white/5"
             )}
             title={conversationMode ? "대화 모드 끄기" : "대화 모드 켜기"}
             data-testid="button-desktop-conversation-mode"
@@ -967,7 +967,7 @@ export default function Home() {
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
             )}
           </button>
-          <button 
+          <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 text-gray-400 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur rounded-lg transition-colors border border-white/5"
             data-testid="button-desktop-menu"
@@ -986,7 +986,7 @@ export default function Home() {
                 transition={{ duration: 0.6 }}
                 className="text-center"
               >
-                <h2 
+                <h2
                   className="text-4xl md:text-5xl font-bold mb-6 tracking-tight"
                   style={{
                     background: 'linear-gradient(to right, #22d3ee, #a855f7, #ec4899)',
@@ -999,15 +999,15 @@ export default function Home() {
                 >
                   GOOD TIME
                 </h2>
-                <p className="text-lg md:text-xl text-gray-400 mt-4" style={{fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif'}}>
-                  <span className="text-[1.95em] text-white font-bold tracking-wider" style={{fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Malgun Gothic", sans-serif'}}>마지</span>와 함께 하세요.
+                <p className="text-lg md:text-xl text-gray-400 mt-4" style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif' }}>
+                  <span className="text-[1.95em] text-white font-bold tracking-wider" style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Malgun Gothic", sans-serif' }}>마지</span>와 함께 하세요.
                 </p>
               </motion.div>
             </div>
           ) : (
             <div className="max-w-4xl mx-auto px-4 py-10 min-h-full flex flex-col justify-end">
               {messages.map((msg) => (
-                <MessageBubble 
+                <MessageBubble
                   key={msg.id}
                   role={msg.role === 'user' ? 'user' : 'model'}
                   text={msg.text}
@@ -1020,13 +1020,13 @@ export default function Home() {
                   isAnyAudioBusy={isTTSPlaying || loadingAudioMessageId !== null}
                 />
               ))}
-              
+
               {isLoading && (
                 <div className="mb-6 ml-12">
                   <TypingIndicator />
                 </div>
               )}
-              
+
               <div ref={messagesEndRef} className="h-4" />
             </div>
           )}
@@ -1044,14 +1044,14 @@ export default function Home() {
                 transition={{ duration: 0.2 }}
                 className="border-t border-white/10 bg-transparent backdrop-blur-sm relative"
               >
-                <button 
+                <button
                   onClick={() => setActiveCategory(null)}
                   className="absolute top-1 right-2 p-1 text-gray-500 hover:text-white rounded-full hover:bg-white/10 transition-colors z-10"
                   data-testid="button-close-submenu"
                 >
                   <X size={14} />
                 </button>
-                
+
                 <div className="grid grid-cols-6 gap-1 p-1.5 pt-3 pb-1 max-w-4xl mx-auto">
                   {SERVICE_DATA.find(c => c.id === activeCategory)?.items.map((item) => (
                     <button
@@ -1076,8 +1076,8 @@ export default function Home() {
 
           {/* Chat Input */}
           <div className="bg-gradient-to-t from-background via-background to-transparent pt-2 pb-2">
-            <ChatInput 
-              onSend={handleSend} 
+            <ChatInput
+              onSend={handleSend}
               isLoading={isLoading}
               isTTSPlaying={isTTSPlaying}
               onStopWordDetected={handleStopWordDetected}
